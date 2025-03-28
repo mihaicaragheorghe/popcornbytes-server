@@ -3,6 +3,9 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# http client private variables (Rider)
+http-client.private.env.json
+
 # dotenv files
 .env
 

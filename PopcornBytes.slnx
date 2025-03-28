@@ -1,0 +1,9 @@
+<Solution>
+    <Folder Name="/src/">
+        <Project Path="src/PopcornBytes.Api/PopcornBytes.Api.csproj"/>
+        <Project Path="src/PopcornBytes.Contracts/PopcornBytes.Contracts.csproj"/>
+    </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/PopcornBytes.UnitTests/PopcornBytes.UnitTests.csproj"/>
+    </Folder>
+</Solution>

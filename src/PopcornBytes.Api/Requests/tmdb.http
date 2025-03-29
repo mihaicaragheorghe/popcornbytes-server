@@ -1,4 +1,4 @@
-@query = "White Lotus"
+@query = "Twin Peaks"
 @show_id = 111803
 
 GET {{tmdb.baseUrl}}/authentication?api_key={{tmdb.apiKey}}

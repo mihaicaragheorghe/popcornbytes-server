@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PopcornBytes.Contracts.TvSeries;
 
-public record TmdbSearchTvSeriesResult
+public record SearchTvSeriesResult
 {
     [JsonPropertyName("id")]
     public int Id { get; init; }

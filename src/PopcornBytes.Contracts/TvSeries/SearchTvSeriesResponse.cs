@@ -5,7 +5,7 @@ namespace PopcornBytes.Contracts.TvSeries;
 public record SearchTvSeriesResponse
 {
     [JsonPropertyName("results")]
-    public TmdbSearchTvSeriesResult[] Results { get; init; }  = [];
+    public SearchTvSeriesResult[] Results { get; init; }  = [];
     
     [JsonPropertyName("page")]
     public int Page { get; init; }

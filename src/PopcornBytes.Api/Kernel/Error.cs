@@ -1,5 +1,3 @@
-using System.Net;
-
 namespace PopcornBytes.Api.Kernel;
 
 public readonly record struct Error
@@ -10,16 +8,14 @@ public readonly record struct Error
 
     public ErrorType Type { get; }
 
-    public HttpStatusCode StatusCode => Type switch
+    public int StatusCode => Type switch
     {
-        ErrorType.Validation => HttpStatusCode.BadRequest,
-        ErrorType.Unauthorized => HttpStatusCode.Unauthorized,
-        ErrorType.Forbidden => HttpStatusCode.Forbidden,
-        ErrorType.NotFound => HttpStatusCode.NotFound,
-        ErrorType.Conflict => HttpStatusCode.Conflict,
-        ErrorType.Failure => HttpStatusCode.InternalServerError,
-        ErrorType.Internal => HttpStatusCode.InternalServerError,
-        _ => HttpStatusCode.InternalServerError,
+        ErrorType.Validation => StatusCodes.Status400BadRequest,
+        ErrorType.Unauthorized => StatusCodes.Status401Unauthorized,
+        ErrorType.Forbidden => StatusCodes.Status403Forbidden,
+        ErrorType.NotFound => StatusCodes.Status404NotFound,
+        ErrorType.Conflict => StatusCodes.Status409Conflict,
+        _ => StatusCodes.Status500InternalServerError,
     };
 
     public static Error Validation(

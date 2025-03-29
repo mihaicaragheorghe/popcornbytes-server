@@ -4,11 +4,9 @@ namespace PopcornBytes.Api.TvSeries;
 
 public class TvSeries
 {
-    public required Guid Id { get; init; }
-    
-    public required int ExternalId { get; init; }
-    
-    public required string Name { get; set; }
+    public int Id { get; init; }
+
+    public string Name { get; set; } = null!;
 
     public string Overview { get; set; } = string.Empty;
 
@@ -23,10 +21,6 @@ public class TvSeries
     public DateOnly? LastAirDate { get; set; }
     
     public bool InProduction { get; set; }
-
-    public ICollection<string> Genres { get; set; } = new List<string>();
-    
-    public ICollection<string> Languages { get; set; } = new List<string>();
 
     public string Status { get; set; } = string.Empty;
     

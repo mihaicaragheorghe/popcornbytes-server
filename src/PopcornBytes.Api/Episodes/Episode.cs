@@ -2,11 +2,9 @@ namespace PopcornBytes.Api.Episodes;
 
 public class Episode
 {
-    public required Guid Id { get; init; }
+    public int Id { get; init; }
     
-    public required int ExternalId { get; init; }
-    
-    public required Guid TvSeriesId { get; init; }
+    public int TvSeriesId { get; init; }
     
     public int SeasonNumber { get; set; }
     

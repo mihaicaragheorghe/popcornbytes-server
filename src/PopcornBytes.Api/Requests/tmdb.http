@@ -1,12 +1,12 @@
 @query = "White Lotus"
 @show_id = 111803
 
-GET https://api.themoviedb.org/3/authentication?api_key={{tmdb.apiKey}}
+GET {{tmdb.baseUrl}}/authentication?api_key={{tmdb.apiKey}}
 
 ###
 
-GET https://api.themoviedb.org/3/search/tv?api_key={{tmdb.apiKey}}&query={{query}}
+GET {{tmdb.baseUrl}}/search/tv?api_key={{tmdb.apiKey}}&query={{query}}
 
 ###
 
-GET https://api.themoviedb.org/3/tv/{{show_id}}?api_key={{tmdb.apiKey}}
+GET {{tmdb.baseUrl}}/tv/{{show_id}}?api_key={{tmdb.apiKey}}

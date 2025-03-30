@@ -1,3 +1,5 @@
+using System.Net;
+
 using Microsoft.Extensions.Options;
 
 using PopcornBytes.Api.Extensions;
@@ -41,11 +43,12 @@ public class TmdbClient : ITmdbClient
         return data;
     }
 
-    public async Task<TmdbTvSeries> GetTvSeriesAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<TmdbTvSeries?> GetTvSeriesAsync(int id, CancellationToken cancellationToken = default)
     {
         using var client =  _httpClientFactory.CreateClient(nameof(TmdbClient));
         
         var response = await client.GetAsync($"/{Version}/tv/{id}?api_key={_options.ApiKey}", cancellationToken);
+        if (response.StatusCode == HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
         
         var series = await response.Content.ReadFromJsonAsync<TmdbTvSeries>(cancellationToken: cancellationToken)

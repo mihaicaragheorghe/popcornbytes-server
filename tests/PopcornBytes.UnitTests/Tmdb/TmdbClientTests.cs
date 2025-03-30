@@ -162,6 +162,19 @@ public class TmdbClientTests
         AssertTmdbTvSeries(expected, actual);
     }
 
+    [Fact]
+    public async Task GetTvSeriesAsync_ShouldReturnNull_WhenApiReturns404()
+    {
+        // Arrange
+        SetupMockHandlerResponse(HttpStatusCode.NotFound, string.Empty);
+
+        // Act
+        var actual = await _sut.GetTvSeriesAsync(0);
+
+        // Assert
+        Assert.Null(actual);
+    }
+
     private static void AssertSearchSeriesResponse(SearchTvSeriesResponse expected, SearchTvSeriesResponse actual)
     {
         Assert.NotNull(actual);
@@ -182,8 +195,9 @@ public class TmdbClientTests
         Assert.Contains(expected.PosterUrl, _options.Value.ImagesBaseUrl);
     }
 
-    private void AssertTmdbTvSeries(TmdbTvSeries expected, TmdbTvSeries actual)
+    private void AssertTmdbTvSeries(TmdbTvSeries expected, TmdbTvSeries? actual)
     {
+        Assert.NotNull(actual);
         Assert.Equal(expected.Id, actual.Id);
         Assert.Equal(expected.Name, actual.Name);
         Assert.Equal(expected.Overview, actual.Overview);

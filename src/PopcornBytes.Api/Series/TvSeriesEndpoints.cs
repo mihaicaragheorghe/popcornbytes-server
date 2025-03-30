@@ -1,5 +1,4 @@
 using PopcornBytes.Api.Tmdb;
-using PopcornBytes.Contracts.Series;
 
 namespace PopcornBytes.Api.Series;
 
@@ -8,12 +7,15 @@ internal static class TvSeriesEndpoints
     public static void MapSeriesEndpoints(this WebApplication app)
     {
         app.MapGet("/series/search",
-            async Task<SearchTvSeriesResponse> (ITmdbClient client, string q, int page = 1,
+            async Task<IResult> (ITmdbClient client, string q, int page = 1,
                 CancellationToken cancellation = default) =>
-                    await client.SearchTvSeriesAsync(q, page, cancellation));
+                    Results.Ok(await client.SearchTvSeriesAsync(q, page, cancellation)));
 
         app.MapGet("/series/{id:int}",
-            async Task<TvSeries> (int id, ITvSeriesService service, CancellationToken cancellation = default) =>
-                await service.GetTvSeriesAsync(id, cancellation));
+            async Task<IResult> (int id, ITvSeriesService service, CancellationToken cancellation = default) =>
+            {
+                var series = await service.GetTvSeriesAsync(id, cancellation);
+                return series is null ? Results.NotFound() : Results.Ok(series);
+            });
     }
 }

@@ -15,7 +15,7 @@ public class TvSeriesService : ITvSeriesService
         _logger = logger;
     }
     
-    public async Task<TvSeries> GetTvSeriesAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<TvSeries?> GetTvSeriesAsync(int id, CancellationToken cancellationToken = default)
     {
         var cached = _cache.Get(id);
         if (cached != null)
@@ -25,7 +25,8 @@ public class TvSeriesService : ITvSeriesService
         }
         
         var tmdbResponse = await _tmdbClient.GetTvSeriesAsync(id, cancellationToken);
-        var series = tmdbResponse.ToTvSeries();
+        var series = tmdbResponse?.ToTvSeries();
+        if (series == null) return null;
          _cache.Set(id, series);
         
         return series;

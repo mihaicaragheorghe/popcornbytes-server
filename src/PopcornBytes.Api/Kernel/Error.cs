@@ -19,7 +19,7 @@ public readonly record struct Error
     };
 
     public static Error Validation(
-        string code = "Validation",
+        string code = "validation",
         string message = "A validation error occurred.") =>
         new(code, message, ErrorType.Validation);
 

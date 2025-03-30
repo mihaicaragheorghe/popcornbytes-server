@@ -9,6 +9,7 @@ using Moq.Protected;
 using PopcornBytes.Api.Tmdb;
 using PopcornBytes.Api.Tmdb.Contracts;
 using PopcornBytes.Contracts.Series;
+using PopcornBytes.UnitTests.TestUtils;
 
 namespace PopcornBytes.UnitTests.Tmdb;
 
@@ -46,7 +47,7 @@ public class TmdbClientTests
     public async Task SearchTvSeriesAsync_ShouldReturnFormattedResults_WhenApiReturnsValidData()
     {
         // Arrange
-        var expected = CreateSearchSeriesResponse(pages: 1, totalPages: 1, totalResults: 1);
+        var expected = TmdbTestUtils.CreateSearchSeriesResponse(pages: 1, totalPages: 1, totalResults: 1);
         SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(expected));
 
         // Act
@@ -62,7 +63,7 @@ public class TmdbClientTests
     {
         // Arrange
         string posterPath = "poster-without-leading-slash";
-        var response = CreateSearchSeriesResponse(results: [CreateSearchSeriesResult(posterPath: posterPath)]);
+        var response = TmdbTestUtils.CreateSearchSeriesResponse(results: [TmdbTestUtils.CreateSearchSeriesResult(posterPath: posterPath)]);
         SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(response));
 
         // Act
@@ -124,10 +125,10 @@ public class TmdbClientTests
     {
         // Arrange
         const string posterPath = "poster-without-leading-slash";
-        var response = CreateTmdbTvSeries(
+        var response = TmdbTestUtils.CreateTmdbTvSeries(
             posterPath: posterPath,
-            lastEpisode: CreateTmdbEpisode(id: 1, stillPath: posterPath),
-            nextEpisode: CreateTmdbEpisode(id: 2, stillPath: posterPath));
+            lastEpisode: TmdbTestUtils.CreateTmdbEpisode(id: 1, stillPath: posterPath),
+            nextEpisode: TmdbTestUtils.CreateTmdbEpisode(id: 2, stillPath: posterPath));
         
         SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(response));
 
@@ -151,7 +152,7 @@ public class TmdbClientTests
     public async Task GetTvSeriesAsync_ShouldReturnSeries_WhenApiReturnsValidData()
     {
         // Arrange
-        var expected = CreateTmdbTvSeries();
+        var expected = TmdbTestUtils.CreateTmdbTvSeries();
         SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(expected));
 
         // Act
@@ -222,90 +223,6 @@ public class TmdbClientTests
         Assert.Contains(_options.Value.ImagesBaseUrl, actual.StillPath);
     }
     
-    private static SearchTvSeriesResponse CreateSearchSeriesResponse(
-        int pages = 1,
-        int totalPages = 1,
-        int totalResults = 1,
-        SearchTvSeriesResult[]? results = null) =>
-        new()
-        {
-            Page = pages,
-            TotalPages = totalPages,
-            TotalResults = totalResults,
-            Results = results ?? CreateSearchSeriesResultCollection(totalResults)
-        };
-
-    private static SearchTvSeriesResult CreateSearchSeriesResult(
-        int id = 1,
-        string name = "Twin Peaks",
-        string overview = "Laura Palmer",
-        string posterPath = "/poster.jpg") =>
-        new()
-        {
-            Id = id, Name = name, Overview = overview, PosterPath = posterPath,
-        };
-    
-    private static TmdbTvSeries CreateTmdbTvSeries(
-        int id = 1,
-        string name = "The Office",
-        string overview = "I like Dwight",
-        string? lastAirDate = null,
-        string? firstAirDate = null,
-        int numberOfSeasons = 9,
-        int numberOfEpisodes = 186,
-        bool inProduction = false,
-        string status = "Ended",
-        string tagline = "That's what she said",
-        string posterPath = "/dunder-mifflin-branch.jpg",
-        TmdbEpisode? lastEpisode = null,
-        TmdbEpisode? nextEpisode = null) =>
-        new()
-        {
-            Id = id,
-            Name = name,
-            Overview = overview,
-            LastAirDate = lastAirDate ?? "2013-05-16",
-            FirstAirDate = firstAirDate ?? "2005-03-24",
-            NumberOfSeasons = numberOfSeasons,
-            NumberOfEpisodes = numberOfEpisodes,
-            InProduction = inProduction,
-            Status = status,
-            Tagline = tagline,
-            PosterPath = posterPath,
-            NextEpisodeToAir = nextEpisode,
-            LastEpisodeToAir = lastEpisode ?? CreateTmdbEpisode(seriesId: id)
-        };
-
-    private static TmdbEpisode CreateTmdbEpisode(
-        int id = 1,
-        int seriesId = 1,
-        string name = "The Dinner Party",
-        string overview = "Michael gets a plasma TV",
-        int? runtime = null,
-        string? airDate = null,
-        int seasonNumber = 4,
-        int episodeNumber = 13,
-        string episodeType = "standard",
-        string stillPath = "plasma-tv.jpg") =>
-        new()
-        {
-            Id = id,
-            Name = name,
-            Overview = overview,
-            AirDate = airDate ?? "2013-05-16",
-            Runtime = runtime ?? 20,
-            EpisodeNumber = episodeNumber,
-            SeasonNumber = seasonNumber,
-            EpisodeType = episodeType,
-            SeriesId = seriesId,
-            StillPath = stillPath,
-        };
-    
-    private static SearchTvSeriesResult[] CreateSearchSeriesResultCollection(int count) => Enumerable
-        .Range(1, count)
-        .Select(i => CreateSearchSeriesResult(id: i))
-        .ToArray();
-
     private void SetupMockHandlerResponse(HttpStatusCode statusCode, string content)
     {
         _mockHttpMessageHandler

@@ -28,4 +28,13 @@ public static class ServiceCollectionExtensions
         
         return services;
     }
+
+    public static IServiceCollection AddCaching(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<ITvSeriesCache>(_ => new TvSeriesCache(
+            capacity: Convert.ToInt32(configuration["Cache:TvSeries:Capacity"] ?? "256"),
+            expirationInHours: Convert.ToInt32(configuration["Cache:TvSeries:ExpirationInHours"] ?? "24")));
+        
+        return services;
+    }
 }

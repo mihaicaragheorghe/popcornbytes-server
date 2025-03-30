@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
+builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddTmdbClient(builder.Configuration);
 builder.Services.AddApplicationServices();
 

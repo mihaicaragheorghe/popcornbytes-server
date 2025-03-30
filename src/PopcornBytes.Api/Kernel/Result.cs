@@ -1,6 +1,6 @@
 namespace PopcornBytes.Api.Kernel;
 
-public sealed class Result<T> : IResult
+public sealed class Result<T>
 {
     public T? Value { get; }
     

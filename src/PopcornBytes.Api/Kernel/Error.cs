@@ -17,6 +17,8 @@ public readonly record struct Error
         ErrorType.Conflict => StatusCodes.Status409Conflict,
         _ => StatusCodes.Status500InternalServerError,
     };
+    
+    public override string ToString() => $"{Code}: {Message}";
 
     public static Error Validation(
         string code = "validation",

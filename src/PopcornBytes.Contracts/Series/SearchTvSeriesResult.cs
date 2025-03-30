@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PopcornBytes.Contracts.TvSeries;
+namespace PopcornBytes.Contracts.Series;
 
 public record SearchTvSeriesResult
 {

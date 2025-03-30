@@ -1,6 +1,6 @@
 using PopcornBytes.Api.Episodes;
 
-namespace PopcornBytes.Api.TvSeries;
+namespace PopcornBytes.Api.Series;
 
 public class TvSeries
 {
@@ -9,6 +9,8 @@ public class TvSeries
     public string Name { get; set; } = null!;
 
     public string Overview { get; set; } = string.Empty;
+    
+    public string Tagline { get; set; }  = string.Empty;
 
     public string PosterUrl { get; set; } = string.Empty;
     
@@ -16,13 +18,15 @@ public class TvSeries
     
     public int EpisodesCount { get; set; }
     
-    public DateOnly? FirstAirDate { get; set; }
+    public DateTime? FirstAirDate { get; set; }
     
-    public DateOnly? LastAirDate { get; set; }
+    public DateTime? LastAirDate { get; set; }
     
     public bool InProduction { get; set; }
 
     public string Status { get; set; } = string.Empty;
+
+    public Episode? LastEpisode { get; set; }
     
     public Episode? NextEpisode { get; set; }
 }

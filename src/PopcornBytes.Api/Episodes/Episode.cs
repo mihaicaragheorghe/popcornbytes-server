@@ -4,7 +4,7 @@ public class Episode
 {
     public int Id { get; init; }
     
-    public int TvSeriesId { get; init; }
+    public int SeriesId { get; init; }
     
     public int SeasonNumber { get; set; }
     
@@ -16,7 +16,9 @@ public class Episode
 
     public string EpisodeType { get; set; } = string.Empty;
     
-    public int Runtime { get; set; }
+    public int? Runtime { get; set; }
     
-    public DateOnly? ReleaseDate { get; set; }
+    public DateTime? ReleaseDate { get; set; }
+    
+    public string StillUrl { get; set; } = string.Empty;
 }

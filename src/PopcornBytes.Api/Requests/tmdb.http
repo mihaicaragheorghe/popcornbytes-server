@@ -1,5 +1,4 @@
-@query = "Twin Peaks"
-@show_id = 111803
+@query = "The Office"
 
 GET {{tmdb.baseUrl}}/authentication?api_key={{tmdb.apiKey}}
 
@@ -8,5 +7,7 @@ GET {{tmdb.baseUrl}}/authentication?api_key={{tmdb.apiKey}}
 GET {{tmdb.baseUrl}}/search/tv?api_key={{tmdb.apiKey}}&query={{query}}
 
 ###
+
+@show_id = 2316
 
 GET {{tmdb.baseUrl}}/tv/{{show_id}}?api_key={{tmdb.apiKey}}

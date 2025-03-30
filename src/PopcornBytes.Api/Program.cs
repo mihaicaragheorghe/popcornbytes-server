@@ -1,6 +1,6 @@
 using PopcornBytes.Api.Extensions;
 using PopcornBytes.Api.Middleware;
-using PopcornBytes.Api.TvSeries;
+using PopcornBytes.Api.Series;
 
 using Serilog;
 
@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddTmdbClient(builder.Configuration);
+builder.Services.AddApplicationServices();
 
 builder.Host.UseSerilog((_, config) =>
     config.WriteTo.Console());

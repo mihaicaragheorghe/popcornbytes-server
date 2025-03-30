@@ -2,3 +2,9 @@
 @page = 1
 
 GET {{host}}/series/search?q={{query}}&page={{page}}
+
+###
+
+@id = 111803
+
+GET {{host}}/series/{{id}}

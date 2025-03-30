@@ -7,7 +7,8 @@ using Moq;
 using Moq.Protected;
 
 using PopcornBytes.Api.Tmdb;
-using PopcornBytes.Contracts.TvSeries;
+using PopcornBytes.Api.Tmdb.Contracts;
+using PopcornBytes.Contracts.Series;
 
 namespace PopcornBytes.UnitTests.Tmdb;
 
@@ -45,23 +46,23 @@ public class TmdbClientTests
     public async Task SearchTvSeriesAsync_ShouldReturnFormattedResults_WhenApiReturnsValidData()
     {
         // Arrange
-        var expected = CreateSampleResponse(pages: 1, totalPages: 1, totalResults: 1);
+        var expected = CreateSearchSeriesResponse(pages: 1, totalPages: 1, totalResults: 1);
         SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(expected));
 
         // Act
         var actual = await _sut.SearchTvSeriesAsync("twin peaks");
 
         // Assert
-        AssertResponse(actual, expected);
-        AssertResult(actual.Results[0], expected.Results[0]);
+        AssertSearchSeriesResponse(expected, actual);
+        AssertSearchSeriesResult(expected.Results[0], actual.Results[0]);
     }
     
     [Fact]
-    public async Task SearchTvSeriesAsync_Should_FormatPosterUrl_When_PosterPathHasNoLeadingSlash()
+    public async Task SearchTvSeriesAsync_ShouldFormatPosterUrl_WhenPosterPathHasNoLeadingSlash()
     {
         // Arrange
         string posterPath = "poster-without-leading-slash";
-        var response = CreateSampleResponse(results: [CreateSampleResult(posterPath: posterPath)]);
+        var response = CreateSearchSeriesResponse(results: [CreateSearchSeriesResult(posterPath: posterPath)]);
         SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(response));
 
         // Act
@@ -75,7 +76,7 @@ public class TmdbClientTests
     }
     
     [Fact]
-    public async Task SearchTvSeriesAsync_Should_ThrowHttpRequestException_When_ApiReturnsNonSuccessStatusCode()
+    public async Task SearchTvSeriesAsync_ShouldThrowHttpRequestException_WhenApiReturnsNonSuccessStatusCode()
     {
         // Arrange
         SetupMockHandlerResponse(HttpStatusCode.BadRequest, string.Empty);
@@ -86,7 +87,7 @@ public class TmdbClientTests
     }
 
     [Fact]
-    public async Task SearchTvSeriesAsync_Should_ThrowException_When_ResponseCannotBeDeserialized()
+    public async Task SearchTvSeriesAsync_ShouldThrowException_WhenResponseCannotBeDeserialized()
     {
         // Arrange
         SetupMockHandlerResponse(HttpStatusCode.OK, "invalid json");
@@ -96,27 +97,132 @@ public class TmdbClientTests
             _sut.SearchTvSeriesAsync("sopranos"));
     }
 
-    private static void AssertResponse(SearchTvSeriesResponse actual, SearchTvSeriesResponse expected)
+    [Fact]
+    public async Task GetTvSeriesAsync_ShouldThrowHttpRequestException_WhenApiReturnsNonSuccessStatusCode()
     {
-        Assert.NotNull(actual);
-        Assert.Equal(actual.Page, expected.Page);
-        Assert.Equal(actual.TotalPages, expected.TotalPages);
-        Assert.Equal(actual.TotalResults, expected.TotalResults);
+        // Arrange
+        SetupMockHandlerResponse(HttpStatusCode.BadRequest, string.Empty);
+
+        // // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(() => 
+            _sut.SearchTvSeriesAsync("atlanta"));
+    }
+    
+    [Fact]
+    public async Task GetTvSeriesAsync_ShouldThrowException_WhenResponseCannotBeDeserialized()
+    {
+        // Arrange
+        SetupMockHandlerResponse(HttpStatusCode.OK, "invalid json");
+
+        // Act & Assert
+        await Assert.ThrowsAsync<JsonException>(() => 
+            _sut.SearchTvSeriesAsync("sopranos"));
+    }
+    
+    [Fact]
+    public async Task GetTvSeriesAsync_ShouldFormatImageUrls_WhenNoLeadingSlashes()
+    {
+        // Arrange
+        const string posterPath = "poster-without-leading-slash";
+        var response = CreateTmdbTvSeries(
+            posterPath: posterPath,
+            lastEpisode: CreateTmdbEpisode(id: 1, stillPath: posterPath),
+            nextEpisode: CreateTmdbEpisode(id: 2, stillPath: posterPath));
+        
+        SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(response));
+
+        // Act
+        var result = await _sut.GetTvSeriesAsync(response.Id);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Contains($"/{posterPath}", result.PosterPath);
+        Assert.Contains($"/{posterPath}", result.LastEpisodeToAir?.StillPath);
+        Assert.Contains($"/{posterPath}", result.NextEpisodeToAir?.StillPath);
+        Assert.Contains(_options.Value.ImagesBaseUrl, result.PosterPath);
+        Assert.Contains(_options.Value.ImagesBaseUrl, result.LastEpisodeToAir?.StillPath);
+        Assert.Contains(_options.Value.ImagesBaseUrl, result.NextEpisodeToAir?.StillPath);
+        Assert.True(Uri.IsWellFormedUriString(result.PosterPath, UriKind.Absolute));
+        Assert.True(Uri.IsWellFormedUriString(result.LastEpisodeToAir?.StillPath, UriKind.Absolute));
+        Assert.True(Uri.IsWellFormedUriString(result.NextEpisodeToAir?.StillPath, UriKind.Absolute));
     }
 
-    private void AssertResult(SearchTvSeriesResult actual, SearchTvSeriesResult expected)
+    [Fact]
+    public async Task GetTvSeriesAsync_ShouldReturnSeries_WhenApiReturnsValidData()
+    {
+        // Arrange
+        var expected = CreateTmdbTvSeries();
+        SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(expected));
+
+        // Act
+        var actual = await _sut.GetTvSeriesAsync(expected.Id);
+
+        // Assert
+        AssertTmdbTvSeries(expected, actual);
+    }
+
+    private static void AssertSearchSeriesResponse(SearchTvSeriesResponse expected, SearchTvSeriesResponse actual)
     {
         Assert.NotNull(actual);
-        Assert.Equal(actual.Id, expected.Id);
-        Assert.Equal(actual.Name, expected.Name);
-        Assert.Equal(actual.Overview, expected.Overview);
-        Assert.Equal(actual.PosterPath, expected.PosterPath);
+        Assert.Equal(expected.Page, actual.Page);
+        Assert.Equal(expected.TotalPages, actual.TotalPages);
+        Assert.Equal(expected.TotalResults, actual.TotalResults);
+    }
+
+    private void AssertSearchSeriesResult(SearchTvSeriesResult expected, SearchTvSeriesResult actual)
+    {
+        Assert.NotNull(actual);
+        Assert.Equal(expected.Id, actual.Id);
+        Assert.Equal(expected.Name, actual.Name);
+        Assert.Equal(expected.Overview, actual.Overview);
+        Assert.Equal(expected.PosterPath, actual.PosterPath);
         
         Assert.Contains(expected.PosterUrl, actual.PosterUrl);
         Assert.Contains(expected.PosterUrl, _options.Value.ImagesBaseUrl);
     }
+
+    private void AssertTmdbTvSeries(TmdbTvSeries expected, TmdbTvSeries actual)
+    {
+        Assert.Equal(expected.Id, actual.Id);
+        Assert.Equal(expected.Name, actual.Name);
+        Assert.Equal(expected.Overview, actual.Overview);
+        Assert.Equal(expected.FirstAirDate, actual.FirstAirDate);
+        Assert.Equal(expected.LastAirDate, actual.LastAirDate);
+        Assert.Equal(expected.NumberOfSeasons, actual.NumberOfSeasons);
+        Assert.Equal(expected.InProduction, actual.InProduction);
+        Assert.Equal(expected.Status, actual.Status);
+        Assert.Equal(expected.Tagline, actual.Tagline);
+        
+        Assert.Contains(expected.PosterPath, actual.PosterPath);
+        Assert.Contains(_options.Value.ImagesBaseUrl, actual.PosterPath);
+        
+        AssertTmdbEpisode(expected.NextEpisodeToAir, actual.NextEpisodeToAir);
+        AssertTmdbEpisode(expected.LastEpisodeToAir, actual.LastEpisodeToAir);
+    }
+
+    private void AssertTmdbEpisode(TmdbEpisode? expected, TmdbEpisode? actual)
+    {
+        if (actual is null)
+        {
+            Assert.Null(expected);
+            return;
+        }
+        Assert.NotNull(actual);
+        Assert.NotNull(expected);
+        Assert.Equal(expected.Id, actual.Id);
+        Assert.Equal(expected.Name, actual.Name);
+        Assert.Equal(expected.Overview, actual.Overview);
+        Assert.Equal(expected.Runtime, actual.Runtime);
+        Assert.Equal(expected.AirDate, actual.AirDate);
+        Assert.Equal(expected.SeasonNumber, actual.SeasonNumber);
+        Assert.Equal(expected.EpisodeNumber, actual.EpisodeNumber);
+        Assert.Equal(expected.EpisodeType, actual.EpisodeType);
+        
+        Assert.Contains(expected.StillPath, actual.StillPath);
+        Assert.Contains(_options.Value.ImagesBaseUrl, actual.StillPath);
+    }
     
-    private static SearchTvSeriesResponse CreateSampleResponse(
+    private static SearchTvSeriesResponse CreateSearchSeriesResponse(
         int pages = 1,
         int totalPages = 1,
         int totalResults = 1,
@@ -126,10 +232,10 @@ public class TmdbClientTests
             Page = pages,
             TotalPages = totalPages,
             TotalResults = totalResults,
-            Results = results ?? CreateSampleResults(totalResults)
+            Results = results ?? CreateSearchSeriesResultCollection(totalResults)
         };
 
-    private static SearchTvSeriesResult CreateSampleResult(
+    private static SearchTvSeriesResult CreateSearchSeriesResult(
         int id = 1,
         string name = "Twin Peaks",
         string overview = "Laura Palmer",
@@ -139,9 +245,65 @@ public class TmdbClientTests
             Id = id, Name = name, Overview = overview, PosterPath = posterPath,
         };
     
-    private static SearchTvSeriesResult[] CreateSampleResults(int count) => Enumerable
+    private static TmdbTvSeries CreateTmdbTvSeries(
+        int id = 1,
+        string name = "The Office",
+        string overview = "I like Dwight",
+        string? lastAirDate = null,
+        string? firstAirDate = null,
+        int numberOfSeasons = 9,
+        int numberOfEpisodes = 186,
+        bool inProduction = false,
+        string status = "Ended",
+        string tagline = "That's what she said",
+        string posterPath = "/dunder-mifflin-branch.jpg",
+        TmdbEpisode? lastEpisode = null,
+        TmdbEpisode? nextEpisode = null) =>
+        new()
+        {
+            Id = id,
+            Name = name,
+            Overview = overview,
+            LastAirDate = lastAirDate ?? "2013-05-16",
+            FirstAirDate = firstAirDate ?? "2005-03-24",
+            NumberOfSeasons = numberOfSeasons,
+            NumberOfEpisodes = numberOfEpisodes,
+            InProduction = inProduction,
+            Status = status,
+            Tagline = tagline,
+            PosterPath = posterPath,
+            NextEpisodeToAir = nextEpisode,
+            LastEpisodeToAir = lastEpisode ?? CreateTmdbEpisode(seriesId: id)
+        };
+
+    private static TmdbEpisode CreateTmdbEpisode(
+        int id = 1,
+        int seriesId = 1,
+        string name = "The Dinner Party",
+        string overview = "Michael gets a plasma TV",
+        int? runtime = null,
+        string? airDate = null,
+        int seasonNumber = 4,
+        int episodeNumber = 13,
+        string episodeType = "standard",
+        string stillPath = "plasma-tv.jpg") =>
+        new()
+        {
+            Id = id,
+            Name = name,
+            Overview = overview,
+            AirDate = airDate ?? "2013-05-16",
+            Runtime = runtime ?? 20,
+            EpisodeNumber = episodeNumber,
+            SeasonNumber = seasonNumber,
+            EpisodeType = episodeType,
+            SeriesId = seriesId,
+            StillPath = stillPath,
+        };
+    
+    private static SearchTvSeriesResult[] CreateSearchSeriesResultCollection(int count) => Enumerable
         .Range(1, count)
-        .Select(i => CreateSampleResult(id: i))
+        .Select(i => CreateSearchSeriesResult(id: i))
         .ToArray();
 
     private void SetupMockHandlerResponse(HttpStatusCode statusCode, string content)

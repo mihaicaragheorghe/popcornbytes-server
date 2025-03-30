@@ -1,3 +1,4 @@
+using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
 
 namespace PopcornBytes.Api.Extensions;
@@ -17,6 +18,13 @@ public static class ServiceCollectionExtensions
         });
         
         services.AddSingleton<ITmdbClient, TmdbClient>();
+        
+        return services;
+    }
+
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddScoped<ITvSeriesService, TvSeriesService>();
         
         return services;
     }

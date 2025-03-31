@@ -3,7 +3,12 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
-# http client private variables (Rider)
+# Sqlite database
+*.db
+*.sqlite
+
+# Rider
+.idea/
 http-client.private.env.json
 
 # dotenv files

@@ -1,4 +1,5 @@
 using PopcornBytes.Api.Kernel;
+using PopcornBytes.Api.Persistence;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
 
@@ -35,6 +36,16 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICacheService<int, TvSeries>>(_ => new CacheService<int, TvSeries>(
             capacity: Convert.ToInt32(configuration["Cache:TvSeries:Capacity"] ?? "256"),
             expirationInHours: Convert.ToInt32(configuration["Cache:TvSeries:ExpirationInHours"] ?? "24")));
+
+        return services;
+    }
+
+    public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
+        services.AddTransient<MigrationsRunner>();
+        
+        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
         return services;
     }

@@ -10,6 +10,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddTmdbClient(builder.Configuration);
+builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplicationServices();
 
 builder.Host.UseSerilog((_, config) =>
@@ -29,5 +30,7 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.MapSeriesEndpoints();
+
+app.RunMigrations();
 
 app.Run();

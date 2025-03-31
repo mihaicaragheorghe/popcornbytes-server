@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 
 using Moq;
 
+using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
 using PopcornBytes.Api.Tmdb.Contracts;
@@ -12,15 +13,15 @@ namespace PopcornBytes.UnitTests.Series;
 public class TvSeriesServiceTests
 {
     private readonly Mock<ITmdbClient> _tmdbClientMock;
-    private readonly Mock<ITvSeriesCache> _tvSeriesCacheMock;
+    private readonly Mock<ICacheService<int, TvSeries>> _cacheMock;
     private readonly TvSeriesService _sut;
 
     public TvSeriesServiceTests()
     {
         Mock<ILogger<TvSeriesService>> loggerMock = new();
         _tmdbClientMock = new Mock<ITmdbClient>();
-        _tvSeriesCacheMock = new Mock<ITvSeriesCache>();
-        _sut = new TvSeriesService(loggerMock.Object, _tmdbClientMock.Object, _tvSeriesCacheMock.Object);
+        _cacheMock = new Mock<ICacheService<int, TvSeries>>();
+        _sut = new TvSeriesService(loggerMock.Object, _cacheMock.Object, _tmdbClientMock.Object);
     }
 
     [Fact]
@@ -28,9 +29,9 @@ public class TvSeriesServiceTests
     {
         // Arrange
         var expected = TvSeriesTestUtils.CreateTvSeries();
-        _tvSeriesCacheMock
-            .Setup(cache => cache.Get(expected.Id))
-            .Returns(expected);
+        _cacheMock
+            .Setup(cache => cache.TryGetValue(expected.Id, out expected))
+            .Returns(true);
         
         // Act
         var actual = await _sut.GetTvSeriesAsync(expected.Id);
@@ -44,9 +45,7 @@ public class TvSeriesServiceTests
     {
         // Arrange
         var expected = TmdbTestUtils.CreateTmdbTvSeries();
-        _tvSeriesCacheMock
-            .Setup(cache => cache.Get(expected.Id))
-            .Returns((TvSeries?)null);
+        SetupCacheMiss();
         _tmdbClientMock
             .Setup(client => client.GetTvSeriesAsync(expected.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
@@ -63,9 +62,7 @@ public class TvSeriesServiceTests
     {
         // Arrange
         var expected = TmdbTestUtils.CreateTmdbTvSeries();
-        _tvSeriesCacheMock
-            .Setup(cache => cache.Get(expected.Id))
-            .Returns((TvSeries?)null);
+        SetupCacheMiss();
         _tmdbClientMock
             .Setup(client => client.GetTvSeriesAsync(expected.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
@@ -75,16 +72,14 @@ public class TvSeriesServiceTests
         
         // Assert
         Assert.NotNull(actual);
-        _tvSeriesCacheMock.Verify(cache => cache.Set(actual.Id, actual), Times.Once);
+        _cacheMock.Verify(cache => cache.Set(actual.Id, actual), Times.Once);
     }
 
     [Fact]
     public async Task GetTvSeriesAsync_ShouldReturnNull_WhenTmdbClientReturnsNull()
     {
         // Arrange
-        _tvSeriesCacheMock
-            .Setup(cache => cache.Get(It.IsAny<int>()))
-            .Returns((TvSeries?)null);
+        SetupCacheMiss();
         _tmdbClientMock
             .Setup(client => client.GetTvSeriesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((TmdbTvSeries?)null);
@@ -100,9 +95,7 @@ public class TvSeriesServiceTests
     public async Task GetTvSeriesAsync_ShouldNotCacheSeries_WhenTmdbClientReturnsNull()
     {
         // Arrange
-        _tvSeriesCacheMock
-            .Setup(cache => cache.Get(It.IsAny<int>()))
-            .Returns((TvSeries?)null);
+        SetupCacheMiss();
         _tmdbClientMock
             .Setup(client => client.GetTvSeriesAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((TmdbTvSeries?)null);
@@ -111,6 +104,14 @@ public class TvSeriesServiceTests
         _ = await _sut.GetTvSeriesAsync(0);
         
         // Assert
-        _tvSeriesCacheMock.Verify(cache => cache.Set(It.IsAny<int>(), It.IsAny<TvSeries>()), Times.Never());
+        _cacheMock.Verify(cache => cache.Set(It.IsAny<int>(), It.IsAny<TvSeries>()), Times.Never());
+    }
+
+    private void SetupCacheMiss()
+    {
+        TvSeries? cachedValue = null;
+        _cacheMock
+            .Setup(cache => cache.TryGetValue(It.IsAny<int>(), out cachedValue))
+            .Returns(false);
     }
 }

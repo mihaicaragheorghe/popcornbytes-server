@@ -9,69 +9,80 @@ public class MigrationsRunner(IDbConnectionFactory dbConnectionFactory, ILogger<
     public void RunMigrationsInAssembly(Assembly assembly)
     {
         logger.LogInformation("Running migrations for assembly {assembly}", assembly.FullName);
-        
-        HashSet<ulong> existingVersions = GetExistingVersions();
-        List<Migration> migrations = [];
+
+        long latest = GetCurrentVersion();
+        List<Migration> migrationsToRun = [];
 
         foreach (var type in assembly.GetTypes()
                      .Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(Migration))))
         {
-            var instance = (Migration?)Activator.CreateInstance(type, dbConnectionFactory);
-            if (instance is null)
+            var migration = (Migration?)Activator.CreateInstance(type);
+            if (migration is null)
             {
                 logger.LogError("Could not create migration instance for type {t}", type.FullName);
                 continue;
             }
 
-            if (!existingVersions.Contains(instance.Version))
+            if (migration.Version > latest)
             {
-                migrations.Add(instance);
+                migrationsToRun.Add(migration);
             }
         }
 
-        foreach (var migration in migrations.OrderBy(m => m.Version))
+        var context = new MigrationContext(dbConnectionFactory, logger);
+
+        foreach (var migration in migrationsToRun.OrderBy(m => m.Version))
         {
             try
             {
-                logger.LogInformation("Running migration {v}, {n}", migration.Version, migration.Name);
-                migration.Up();
-                RecordMigration(migration);
+                logger.LogInformation("Updating to version {v}, {n}...", migration.Version, migration.Description);
+
+                context.Direction = MigrationDirection.Up;
+                migration.Run(context);
+                UpdateVersion(migration.Version, migration.Description);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Migration {n} failed", migration.Name);
-                migration.Down();
-                DeleteRecord(migration.Version);
+                logger.LogError(ex, "Migration {n} failed", migration.Description);
+
+                context.Direction = MigrationDirection.Down;
+                migration.Run(context);
+                DeleteVersion(migration.Version);
             }
         }
 
         logger.LogInformation("Finished up migrations for {assembly}", assembly.FullName);
     }
 
-    private HashSet<ulong> GetExistingVersions()
+    private long GetCurrentVersion()
+    {
+        if (IsInitialMigration()) return -1;
+
+        using var connection = dbConnectionFactory.CreateSqlConnection();
+        return connection.QuerySingle("SELECT version FROM version_info ORDER BY version DESC LIMIT 1");
+    }
+
+    private bool IsInitialMigration()
     {
         using var connection = dbConnectionFactory.CreateSqlConnection();
 
-        bool tableExists = connection.QueryFirstOrDefault<bool>(
-            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='migrations'");
-
-        return !tableExists ? [] : connection.Query<ulong>("SELECT version FROM migrations").ToHashSet();
+        return !connection.QueryFirstOrDefault<bool>(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='version_info'");
     }
 
-    private void RecordMigration(Migration migration)
+    private void UpdateVersion(long version, string description)
     {
         using var connection = dbConnectionFactory.CreateSqlConnection();
 
         connection.Execute(
-            "INSERT INTO migrations (version, name, executed_at) VALUES (@Version, @Name, @UtcNow)",
-            new { migration.Version, migration.Name, DateTime.UtcNow });
+            "INSERT INTO version_info (version, description, executed_at) VALUES (@version, @description, @UtcNow)",
+            new { version, description, DateTime.UtcNow });
     }
 
-    private void DeleteRecord(ulong version)
+    private void DeleteVersion(long version)
     {
         using var connection = dbConnectionFactory.CreateSqlConnection();
-        
-        connection.Execute("DELETE FROM migrations WHERE version = @Version",
-            new { Version = version });
+
+        connection.Execute("DELETE FROM version_info WHERE version = @version", new { version });
     }
 }

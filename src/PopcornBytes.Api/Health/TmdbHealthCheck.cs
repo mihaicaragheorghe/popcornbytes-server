@@ -16,7 +16,7 @@ public class TmdbHealthCheck(ITmdbClient client, ILogger<TmdbHealthCheck> logger
         }
         catch (Exception ex)
         {
-            logger?.LogError(ex, "{m}", ex.Message);
+            logger.LogError(ex, "{m}", ex.Message);
             return HealthCheckResult.Unhealthy();
         }
     }

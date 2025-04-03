@@ -18,6 +18,7 @@
 
 # Launched
 
+- [x] Add health checks for database and TMDB
 - [x] Add persistence (sqlite & migrations)
 - [x] TMDB client to handle the communication with the TMDB API
 - [x] Search TV series by name endpoint

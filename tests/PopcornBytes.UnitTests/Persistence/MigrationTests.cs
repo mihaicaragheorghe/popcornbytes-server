@@ -1,7 +1,5 @@
 using System.Data;
 
-using Dapper;
-
 using Microsoft.Extensions.Logging;
 
 using Moq;

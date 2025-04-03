@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 
-using PopcornBytes.Api.Kernel;
-
 namespace PopcornBytes.Api.Middleware;
 
 public class ErrorHandlingMiddleware
@@ -20,18 +18,6 @@ public class ErrorHandlingMiddleware
         try
         {
             await _next(context);
-        }
-        catch (ServiceException ex)
-        {
-            _logger.LogError(ex, "{m}", ex.Message);
-
-            var problemDetails = new ProblemDetails
-            {
-                Status = ex.Error.StatusCode, Title = ex.Error.Code, Detail = ex.Error.Message,
-            };
-
-            context.Response.StatusCode = ex.Error.StatusCode;
-            await context.Response.WriteAsJsonAsync(problemDetails);
         }
         catch (Exception ex)
         {

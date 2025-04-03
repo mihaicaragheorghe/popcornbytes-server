@@ -37,18 +37,16 @@ public class TmdbClient : ITmdbClient
         using var client = CreateHttpClient();
 
         var response = await client.GetAsync(
-            $"/{Version}/search/tv?api_key={_options.ApiKey}&query={query}&page={page}",
-            cancellationToken);
+            $"/{Version}/search/tv?api_key={_options.ApiKey}&query={query}&page={page}", cancellationToken);
+
         response.EnsureSuccessStatusCode();
 
-        var data =
-            await response.Content.ReadFromJsonAsync<SearchTvSeriesResponse>(cancellationToken: cancellationToken)
-            ?? throw new Exception($"Failed to find search result for {query}");
+        var data = await response.Content.ReadFromJsonAsync<SearchTvSeriesResponse>(cancellationToken)
+                   ?? throw new Exception($"Failed to find search result for {query}");
 
         foreach (var show in data.Results)
         {
-            const string size = "w300";
-            show.PosterUrl = $"{_options.ImagesBaseUrl}/{size}{show.PosterPath.WithRequiredPrefix('/')}";
+            show.PosterUrl = ImageUrl(show.PosterPath, TmdbImageSize.W300);
         }
 
         return data;
@@ -62,21 +60,21 @@ public class TmdbClient : ITmdbClient
         if (response.StatusCode == HttpStatusCode.NotFound) return null;
         response.EnsureSuccessStatusCode();
 
-        var series = await response.Content.ReadFromJsonAsync<TmdbTvSeries>(cancellationToken: cancellationToken)
+        var series = await response.Content.ReadFromJsonAsync<TmdbTvSeries>(cancellationToken)
                      ?? throw new Exception($"Failed to find tv series for {id}");
 
-        const string size = "original";
-        series.PosterPath = $"{_options.ImagesBaseUrl}/{size}{series.PosterPath.WithRequiredPrefix('/')}";
+        series.PosterPath = ImageUrl(series.PosterPath);
         if (series.NextEpisodeToAir != null)
         {
-            series.NextEpisodeToAir.StillPath =
-                $"{_options.ImagesBaseUrl}/{size}{series.NextEpisodeToAir?.StillPath.WithRequiredPrefix('/')}";
+            series.NextEpisodeToAir.StillPath = ImageUrl(series.NextEpisodeToAir?.StillPath, TmdbImageSize.W300);
         }
-
         if (series.LastEpisodeToAir != null)
         {
-            series.LastEpisodeToAir.StillPath =
-                $"{_options.ImagesBaseUrl}/{size}{series.LastEpisodeToAir?.StillPath.WithRequiredPrefix('/')}";
+            series.LastEpisodeToAir.StillPath = ImageUrl(series.LastEpisodeToAir.StillPath, TmdbImageSize.W300);
+        }
+        foreach (var season in series.Seasons)
+        {
+            season.PosterPath = ImageUrl(season.PosterPath, TmdbImageSize.W300);
         }
 
         return series;
@@ -85,5 +83,15 @@ public class TmdbClient : ITmdbClient
     private HttpClient CreateHttpClient()
     {
         return _httpClientFactory.CreateClient(nameof(TmdbClient));
+    }
+
+    private string ImageUrl(string? path, string size = TmdbImageSize.Original)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return string.Empty;
+        }
+        
+        return $"{_options.ImagesBaseUrl}/{size}{path.WithRequiredPrefix('/')}";
     }
 }

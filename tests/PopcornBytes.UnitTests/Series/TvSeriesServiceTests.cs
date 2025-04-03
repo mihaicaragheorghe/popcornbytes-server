@@ -54,7 +54,7 @@ public class TvSeriesServiceTests
         var actual = await _sut.GetTvSeriesAsync(expected.Id);
         
         // Assert
-        Assert.Equivalent(actual, expected.ToTvSeries());
+        Assert.Equivalent(actual, TvSeries.FromTmdbSeries(expected));
     }
 
     [Fact]

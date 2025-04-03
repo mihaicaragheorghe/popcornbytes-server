@@ -1,8 +1,5 @@
 # In progress
 
-- [ ] Add seasons collection in TvSeries struct
-    - [ ] Create a DTO in contracts and use it for `/series/{id}` endpoint
-
 - [ ] Endpoint for getting a specific season
 - [ ] Endpoint for getting a specific episode
 
@@ -18,6 +15,7 @@
 
 # Launched
 
+- [x] Add seasons collection in TvSeries struct
 - [x] Add health checks for database and TMDB
 - [x] Add persistence (sqlite & migrations)
 - [x] TMDB client to handle the communication with the TMDB API

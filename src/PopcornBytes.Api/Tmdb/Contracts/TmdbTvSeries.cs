@@ -1,7 +1,5 @@
 using System.Text.Json.Serialization;
 
-using PopcornBytes.Api.Series;
-
 namespace PopcornBytes.Api.Tmdb.Contracts;
 
 public record TmdbTvSeries
@@ -37,29 +35,14 @@ public record TmdbTvSeries
     public string Tagline { get; init; } = string.Empty;
         
     [JsonPropertyName("poster_path")]
-    public string PosterPath { get; set; }  = string.Empty;
+    public string? PosterPath { get; set; }
 
     [JsonPropertyName("last_episode_to_air")]
     public TmdbEpisode? LastEpisodeToAir { get; init; }
     
     [JsonPropertyName("next_episode_to_air")]
     public TmdbEpisode? NextEpisodeToAir { get; init; }
-
-    public TvSeries ToTvSeries() =>
-        new()
-        {
-            Id = Id,
-            Name = Name,
-            Overview = Overview,
-            Tagline = Tagline,
-            PosterUrl = PosterPath,
-            SeasonsCount = NumberOfSeasons,
-            EpisodesCount = NumberOfEpisodes,
-            FirstAirDate = FirstAirDate is null ? null : Convert.ToDateTime(FirstAirDate),
-            LastAirDate = LastAirDate is null ? null : Convert.ToDateTime(LastAirDate),
-            InProduction = InProduction,
-            Status = Status,
-            LastEpisode = LastEpisodeToAir?.ToEpisode(),
-            NextEpisode = NextEpisodeToAir?.ToEpisode(),
-        };
+    
+    [JsonPropertyName("seasons")]
+    public List<TmdbSeason> Seasons { get; init; } = [];
 }

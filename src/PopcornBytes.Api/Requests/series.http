@@ -1,4 +1,4 @@
-@query = "True Detective"
+@query = "White lotus"
 @page = 1
 
 GET {{host}}/series/search?q={{query}}&page={{page}}

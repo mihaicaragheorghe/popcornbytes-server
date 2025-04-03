@@ -27,7 +27,7 @@ public static class TmdbTestUtils
         {
             Id = id, Name = name, Overview = overview, PosterPath = posterPath,
         };
-    
+
     public static TmdbTvSeries CreateTmdbTvSeries(
         int id = 1,
         string name = "The Office",
@@ -41,7 +41,8 @@ public static class TmdbTestUtils
         string tagline = "That's what she said",
         string posterPath = "/dunder-mifflin-branch.jpg",
         TmdbEpisode? lastEpisode = null,
-        TmdbEpisode? nextEpisode = null) =>
+        TmdbEpisode? nextEpisode = null,
+        List<TmdbSeason>? seasons = null) =>
         new()
         {
             Id = id,
@@ -56,7 +57,8 @@ public static class TmdbTestUtils
             Tagline = tagline,
             PosterPath = posterPath,
             NextEpisodeToAir = nextEpisode,
-            LastEpisodeToAir = lastEpisode ?? CreateTmdbEpisode(seriesId: id)
+            LastEpisodeToAir = lastEpisode ?? CreateTmdbEpisode(seriesId: id),
+            Seasons = seasons ?? CreateTmdbSeasonCollection(9),
         };
 
     public static TmdbEpisode CreateTmdbEpisode(
@@ -83,7 +85,32 @@ public static class TmdbTestUtils
             SeriesId = seriesId,
             StillPath = stillPath,
         };
+
+    public static TmdbSeason CreateTmdbSeason(
+        int id = 1,
+        string title = "Season 5",
+        string overview =
+            "Michael Scott and his fellow Dunder Mifflin-ites steal customers, frame co-workers, and indulge in intra-office love affairs.",
+        int seasonNumber = 5,
+        int episodeCount = 26,
+        string? airDate = "2008-09-25",
+        string posterUrl = "/hwlQxOPGIybqBz5TYYIe6XtOfi4.jpg") =>
+        new()
+        {
+            Id = id,
+            Name = title,
+            Overview = overview,
+            SeasonNumber = seasonNumber,
+            EpisodeCount = episodeCount,
+            AirDate = airDate,
+            PosterPath = posterUrl,
+        };
     
+    public static List<TmdbSeason> CreateTmdbSeasonCollection(int count) => Enumerable
+        .Range(1, count)
+        .Select(i => CreateTmdbSeason(id: i))
+        .ToList();
+
     public static SearchTvSeriesResult[] CreateSearchSeriesResultCollection(int count) => Enumerable
         .Range(1, count)
         .Select(i => CreateSearchSeriesResult(id: i))

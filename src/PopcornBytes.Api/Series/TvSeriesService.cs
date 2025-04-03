@@ -28,10 +28,10 @@ public class TvSeriesService : ITvSeriesService
         }
 
         var tmdbResponse = await _tmdbClient.GetTvSeriesAsync(id, cancellationToken);
-        var series = tmdbResponse?.ToTvSeries();
-        if (series == null) return null;
+        if (tmdbResponse is null) return null;
+        
+        var series = TvSeries.FromTmdbSeries(tmdbResponse);
         _cache.Set(id, series);
-
         return series;
     }
 }

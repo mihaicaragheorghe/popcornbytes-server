@@ -1,7 +1,5 @@
 using System.Text.Json.Serialization;
 
-using PopcornBytes.Api.Episodes;
-
 namespace PopcornBytes.Api.Tmdb.Contracts;
 
 public record TmdbEpisode
@@ -34,20 +32,5 @@ public record TmdbEpisode
     public string? EpisodeType { get; init; }
     
     [JsonPropertyName("still_path")]
-    public string StillPath { get; set; } = string.Empty;
-
-    public Episode ToEpisode() =>
-        new()
-        {
-            Id = Id,
-            SeriesId = SeriesId,
-            Title = Name,
-            Overview = Overview ?? string.Empty,
-            Runtime = Runtime,
-            SeasonNumber = SeasonNumber,
-            EpisodeNumber = EpisodeNumber,
-            EpisodeType = EpisodeType ?? string.Empty,
-            ReleaseDate = AirDate is null ? null : Convert.ToDateTime(AirDate),
-            StillUrl = StillPath
-        };
+    public string? StillPath { get; set; }
 }

@@ -161,16 +161,7 @@ public class TmdbClientTests
         var result = await _sut.GetTvSeriesAsync(response.Id);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Contains($"/{posterPath}", result.PosterPath);
-        Assert.Contains($"/{posterPath}", result.LastEpisodeToAir?.StillPath);
-        Assert.Contains($"/{posterPath}", result.NextEpisodeToAir?.StillPath);
-        Assert.Contains(_options.Value.ImagesBaseUrl, result.PosterPath);
-        Assert.Contains(_options.Value.ImagesBaseUrl, result.LastEpisodeToAir?.StillPath);
-        Assert.Contains(_options.Value.ImagesBaseUrl, result.NextEpisodeToAir?.StillPath);
-        Assert.True(Uri.IsWellFormedUriString(result.PosterPath, UriKind.Absolute));
-        Assert.True(Uri.IsWellFormedUriString(result.LastEpisodeToAir?.StillPath, UriKind.Absolute));
-        Assert.True(Uri.IsWellFormedUriString(result.NextEpisodeToAir?.StillPath, UriKind.Absolute));
+        AssertTmdbTvSeries(response, result);
     }
 
     [Fact]
@@ -233,11 +224,33 @@ public class TmdbClientTests
         Assert.Equal(expected.Status, actual.Status);
         Assert.Equal(expected.Tagline, actual.Tagline);
         
-        Assert.Contains(expected.PosterPath, actual.PosterPath);
+        Assert.Contains(expected.PosterPath!, actual.PosterPath);
         Assert.Contains(_options.Value.ImagesBaseUrl, actual.PosterPath);
+        Assert.True(Uri.IsWellFormedUriString(actual.PosterPath, UriKind.Absolute));
         
         AssertTmdbEpisode(expected.NextEpisodeToAir, actual.NextEpisodeToAir);
         AssertTmdbEpisode(expected.LastEpisodeToAir, actual.LastEpisodeToAir);
+
+        Assert.Equal(expected.Seasons.Count, actual.Seasons.Count);
+        for (int i = 0; i < expected.Seasons.Count; i++)
+        {
+            AssertTmdbSeason(expected.Seasons[i], actual.Seasons[i]);
+        }
+    }
+
+    private void AssertTmdbSeason(TmdbSeason expected, TmdbSeason actual)
+    {
+        Assert.NotNull(actual);
+        Assert.Equal(expected.Id, actual.Id);
+        Assert.Equal(expected.Name, actual.Name);
+        Assert.Equal(expected.Overview, actual.Overview);
+        Assert.Equal(expected.SeasonNumber, actual.SeasonNumber);
+        Assert.Equal(expected.EpisodeCount, actual.EpisodeCount);
+        Assert.Equal(expected.AirDate, actual.AirDate);
+        
+        Assert.Contains(expected.PosterPath!, actual.PosterPath);
+        Assert.Contains(_options.Value.ImagesBaseUrl, actual.PosterPath);
+        Assert.True(Uri.IsWellFormedUriString(actual.PosterPath, UriKind.Absolute));
     }
 
     private void AssertTmdbEpisode(TmdbEpisode? expected, TmdbEpisode? actual)
@@ -247,7 +260,6 @@ public class TmdbClientTests
             Assert.Null(expected);
             return;
         }
-        Assert.NotNull(actual);
         Assert.NotNull(expected);
         Assert.Equal(expected.Id, actual.Id);
         Assert.Equal(expected.Name, actual.Name);
@@ -258,8 +270,9 @@ public class TmdbClientTests
         Assert.Equal(expected.EpisodeNumber, actual.EpisodeNumber);
         Assert.Equal(expected.EpisodeType, actual.EpisodeType);
         
-        Assert.Contains(expected.StillPath, actual.StillPath);
+        Assert.Contains(expected.StillPath!, actual.StillPath);
         Assert.Contains(_options.Value.ImagesBaseUrl, actual.StillPath);
+        Assert.True(Uri.IsWellFormedUriString(actual.StillPath, UriKind.Absolute));
     }
     
     private void SetupMockHandlerResponse(HttpStatusCode statusCode, string content)

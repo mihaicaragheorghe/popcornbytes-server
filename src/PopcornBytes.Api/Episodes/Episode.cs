@@ -1,3 +1,5 @@
+using PopcornBytes.Api.Tmdb.Contracts;
+
 namespace PopcornBytes.Api.Episodes;
 
 public class Episode
@@ -20,5 +22,20 @@ public class Episode
     
     public DateTime? ReleaseDate { get; set; }
     
-    public string StillUrl { get; set; } = string.Empty;
+    public string? StillUrl { get; set; }
+    
+    public static Episode FromTmdbEpisode(TmdbEpisode tmdbEpisode) =>
+        new()
+        {
+            Id = tmdbEpisode.Id,
+            SeriesId = tmdbEpisode.SeriesId,
+            Title = tmdbEpisode.Name,
+            Overview = tmdbEpisode.Overview ?? string.Empty,
+            Runtime = tmdbEpisode.Runtime,
+            SeasonNumber = tmdbEpisode.SeasonNumber,
+            EpisodeNumber = tmdbEpisode.EpisodeNumber,
+            EpisodeType = tmdbEpisode.EpisodeType ?? string.Empty,
+            ReleaseDate = string.IsNullOrEmpty(tmdbEpisode.AirDate) ? null : Convert.ToDateTime(tmdbEpisode.AirDate),
+            StillUrl = tmdbEpisode.StillPath
+        };
 }

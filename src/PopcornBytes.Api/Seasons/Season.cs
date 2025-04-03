@@ -1,4 +1,4 @@
-using PopcornBytes.Api.Episodes;
+using PopcornBytes.Api.Tmdb.Contracts;
 
 namespace PopcornBytes.Api.Seasons;
 
@@ -8,13 +8,28 @@ public class Season
     
     public int TvSeriesId { get; init; }
     
-    public string Name { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
     
     public string Overview { get; set; } = string.Empty;
     
     public int SeasonNumber { get; set; }
     
-    public DateOnly? AirDate { get; set; }
+    public int EpisodeCount { get; set; }
     
-    public ICollection<Episode> Episodes { get; set; } = new List<Episode>();
+    public DateTime? AirDate { get; set; }
+    
+    public string? PosterUrl { get; set; }
+    
+    public static Season FromTmdbSeason(TmdbSeason tmdbSeason, int seriesId) =>
+        new()
+        {
+            Id = tmdbSeason.Id,
+            TvSeriesId = seriesId,
+            Title = tmdbSeason.Name,
+            Overview = tmdbSeason.Overview,
+            SeasonNumber = tmdbSeason.SeasonNumber,
+            EpisodeCount = tmdbSeason.EpisodeCount,
+            AirDate = string.IsNullOrEmpty(tmdbSeason.AirDate) ? null : Convert.ToDateTime(tmdbSeason.AirDate),
+            PosterUrl = tmdbSeason.PosterPath
+        };
 }

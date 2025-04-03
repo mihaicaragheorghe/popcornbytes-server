@@ -1,4 +1,5 @@
 using PopcornBytes.Api.Episodes;
+using PopcornBytes.Api.Seasons;
 using PopcornBytes.Api.Series;
 
 namespace PopcornBytes.UnitTests.TestUtils;
@@ -18,7 +19,8 @@ public static class TvSeriesTestUtils
         string tagline = "That's what she said",
         string posterUrl = "/dunder-mifflin-branch.jpg",
         Episode? lastEpisode = null,
-        Episode? nextEpisode = null) =>
+        Episode? nextEpisode = null,
+        List<Season>? seasons = null) =>
         new()
         {
             Id = id,
@@ -33,6 +35,7 @@ public static class TvSeriesTestUtils
             Tagline = tagline,
             PosterUrl = posterUrl,
             NextEpisode = nextEpisode,
-            LastEpisode = lastEpisode ?? EpisodeTestUtils.CreateEpisode(seriesId: id)
+            LastEpisode = lastEpisode ?? EpisodeTestUtils.CreateEpisode(seriesId: id),
+            Seasons = seasons ?? SeasonTestUtils.CreateSeasons(seasonsCount),
         };
 }

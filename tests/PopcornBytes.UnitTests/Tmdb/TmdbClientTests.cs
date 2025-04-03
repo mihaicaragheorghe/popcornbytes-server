@@ -44,6 +44,31 @@ public class TmdbClientTests
     }
     
     [Fact]
+    public async Task Authenticate_ShouldThrow_WhenStatusCodeNotOk()
+    {
+        // Arrange
+        object response = new { success = false };
+        SetupMockHandlerResponse(HttpStatusCode.Unauthorized, JsonSerializer.Serialize(response));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(() => _sut.AuthenticateAsync());
+    }
+
+    [Fact]
+    public async Task Authenticate_ShouldNotThrow_WhenStatusCodeOk()
+    {
+        // Arrange
+        object response = new { success = true };
+        SetupMockHandlerResponse(HttpStatusCode.OK, JsonSerializer.Serialize(response));
+        
+        // Act
+        var exception = await Record.ExceptionAsync(() => _sut.AuthenticateAsync());
+        
+        // Assert
+        Assert.Null(exception);
+    }
+    
+    [Fact]
     public async Task SearchTvSeriesAsync_ShouldReturnFormattedResults_WhenApiReturnsValidData()
     {
         // Arrange

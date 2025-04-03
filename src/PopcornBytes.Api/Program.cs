@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+
 using PopcornBytes.Api.Extensions;
+using PopcornBytes.Api.Health;
 using PopcornBytes.Api.Middleware;
 using PopcornBytes.Api.Series;
 
@@ -12,6 +15,9 @@ builder.Services.AddCaching(builder.Configuration);
 builder.Services.AddTmdbClient(builder.Configuration);
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplicationServices();
+builder.Services.AddHealthChecks()
+    .AddCheck<DbHealthCheck>("db")
+    .AddCheck<TmdbHealthCheck>("tmdb");
 
 builder.Host.UseSerilog((_, config) =>
     config.WriteTo.Console());
@@ -30,6 +36,10 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSerilogRequestLogging();
 
 app.MapSeriesEndpoints();
+app.MapHealthChecks("/healthz", new HealthCheckOptions()
+{
+    ResponseWriter = HealthCheckExtensions.WriteResponse
+});
 
 app.RunMigrations();
 

@@ -8,8 +8,6 @@ public class MigrationsRunner(IDbConnectionFactory dbConnectionFactory, ILogger<
 {
     public void RunMigrationsInAssembly(Assembly assembly)
     {
-        logger.LogInformation("Running migrations for assembly {assembly}", assembly.FullName);
-
         long latest = GetCurrentVersion();
         List<Migration> migrationsToRun = [];
 
@@ -29,6 +27,9 @@ public class MigrationsRunner(IDbConnectionFactory dbConnectionFactory, ILogger<
             }
         }
 
+        if (migrationsToRun.Count == 0) return;
+
+        logger.LogInformation("Found {c} migrations to run for assembly {a}", migrationsToRun.Count, assembly.FullName);
         var context = new MigrationContext(dbConnectionFactory, logger);
 
         foreach (var migration in migrationsToRun.OrderBy(m => m.Version))
@@ -59,7 +60,7 @@ public class MigrationsRunner(IDbConnectionFactory dbConnectionFactory, ILogger<
         if (IsInitialMigration()) return -1;
 
         using var connection = dbConnectionFactory.CreateSqlConnection();
-        return connection.QuerySingle("SELECT version FROM version_info ORDER BY version DESC LIMIT 1");
+        return connection.QuerySingle<long>("SELECT version FROM version_info ORDER BY version DESC LIMIT 1");
     }
 
     private bool IsInitialMigration()

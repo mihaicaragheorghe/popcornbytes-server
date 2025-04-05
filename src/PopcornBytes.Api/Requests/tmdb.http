@@ -1,13 +1,31 @@
-@query = "The Office"
+### Authentication
 
 GET {{tmdb.baseUrl}}/authentication?api_key={{tmdb.apiKey}}
 
-###
+### Configuration
+
+GET {{tmdb.baseUrl}}/configuration?api_key={{tmdb.apiKey}}
+
+### Seach TV
+
+@query = "White lotus"
 
 GET {{tmdb.baseUrl}}/search/tv?api_key={{tmdb.apiKey}}&query={{query}}
 
-###
+### Get TV series
 
-@show_id = 2316
+@seriesId = 111803
 
-GET {{tmdb.baseUrl}}/tv/{{show_id}}?api_key={{tmdb.apiKey}}
+GET {{tmdb.baseUrl}}/tv/{{seriesId}}?api_key={{tmdb.apiKey}}
+
+### Get season
+
+@seasonNumber = 3
+
+GET {{tmdb.baseUrl}}/tv/{{seriesId}}/season/{{seasonNumber}}?api_key={{tmdb.apiKey}}
+
+### Get episode
+
+@episodeNumber = 1
+
+GET {{tmdb.baseUrl}}/tv/{{seriesId}}/season/{{seasonNumber}}/episode/{{episodeNumber}}?api_key={{tmdb.apiKey}}

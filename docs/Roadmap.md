@@ -1,20 +1,20 @@
 # In progress
 
-- [ ] Endpoint for getting a specific season
-- [ ] Endpoint for getting a specific episode
+- [ ] Add authentication
 
 # Planned
 
-- [ ] Add authentication
-- [ ] Create TMDB sessions for users at login
-
-- [ ] Get TMDB images url from the `/configuration` endpoint at startup
-
 - [ ] Add tracking
-- [ ] Add notifications
+
+# Backlog
+
+- [ ] Create TMDB sessions for users at login
+- [ ] Get TMDB images url from the `/configuration` endpoint at startup
 
 # Launched
 
+- [x] Endpoint for getting a specific season
+- [x] Endpoint for getting a specific episode
 - [x] Add seasons collection in TvSeries struct
 - [x] Add health checks for database and TMDB
 - [x] Add persistence (sqlite & migrations)

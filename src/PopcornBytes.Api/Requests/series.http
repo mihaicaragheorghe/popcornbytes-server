@@ -1,7 +1,7 @@
 @query = "White lotus"
 @page = 1
 
-GET {{host}}/series/search?q={{query}}&page={{page}}
+GET {{host}}/series/search?q={{query}}&p={{page}}
 
 ###
 

@@ -61,18 +61,18 @@ public class TvSeriesServiceTests
     public async Task GetTvSeriesAsync_ShouldCacheSeries_WhenRetrievedFromTmdb()
     {
         // Arrange
-        var expected = TmdbTestUtils.CreateTmdbTvSeries();
+        var tmdbSeries = TmdbTestUtils.CreateTmdbTvSeries();
         SetupCacheMiss();
         _tmdbClientMock
-            .Setup(client => client.GetTvSeriesAsync(expected.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(expected);
+            .Setup(client => client.GetTvSeriesAsync(tmdbSeries.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(tmdbSeries);
         
         // Act
-        var actual = await _sut.GetTvSeriesAsync(expected.Id);
+        var series = await _sut.GetTvSeriesAsync(tmdbSeries.Id);
         
         // Assert
-        Assert.NotNull(actual);
-        _cacheMock.Verify(cache => cache.Set(actual.Id, actual), Times.Once);
+        Assert.NotNull(series);
+        _cacheMock.Verify(cache => cache.Set(series.Id, series), Times.Once);
     }
 
     [Fact]
@@ -85,10 +85,10 @@ public class TvSeriesServiceTests
             .ReturnsAsync((TmdbTvSeries?)null);
         
         // Act
-        var actual = await _sut.GetTvSeriesAsync(0);
+        var series = await _sut.GetTvSeriesAsync(0);
         
         // Assert
-        Assert.Null(actual);
+        Assert.Null(series);
     }
 
     [Fact]

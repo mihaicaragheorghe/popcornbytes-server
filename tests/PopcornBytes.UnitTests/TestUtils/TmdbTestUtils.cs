@@ -94,7 +94,8 @@ public static class TmdbTestUtils
         int seasonNumber = 5,
         int episodeCount = 26,
         string? airDate = "2008-09-25",
-        string posterUrl = "/hwlQxOPGIybqBz5TYYIe6XtOfi4.jpg") =>
+        string posterUrl = "/hwlQxOPGIybqBz5TYYIe6XtOfi4.jpg",
+        List<TmdbEpisode>? episodes = null) =>
         new()
         {
             Id = id,
@@ -104,11 +105,17 @@ public static class TmdbTestUtils
             EpisodeCount = episodeCount,
             AirDate = airDate,
             PosterPath = posterUrl,
+            Episodes = episodes ?? CreateTmdbEpisodeCollection(13, id),
         };
     
     public static List<TmdbSeason> CreateTmdbSeasonCollection(int count) => Enumerable
         .Range(1, count)
         .Select(i => CreateTmdbSeason(id: i))
+        .ToList();
+    
+    public static List<TmdbEpisode> CreateTmdbEpisodeCollection(int count, int seriesId = 1, int season = 1) => Enumerable
+        .Range(1, count)
+        .Select(i => CreateTmdbEpisode(id: i, episodeNumber: i, seriesId: seriesId, seasonNumber: season))
         .ToList();
 
     public static SearchTvSeriesResult[] CreateSearchSeriesResultCollection(int count) => Enumerable

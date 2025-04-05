@@ -29,8 +29,8 @@ public static class EpisodeTestUtils
             StillUrl = stillUrl,
         };
     
-    public static Episode[] CreateSearchSeriesResultCollection(int count) => Enumerable
+    public static List<Episode> CreateEpisodesCollection(int count, int seriesId = 1, int seasonNumber = 1) => Enumerable
         .Range(1, count)
-        .Select(i => CreateEpisode(id: i))
-        .ToArray();
+        .Select(i => CreateEpisode(id: i, episodeNumber: i, seriesId: seriesId, seasonNumber: seasonNumber))
+        .ToList();
 }

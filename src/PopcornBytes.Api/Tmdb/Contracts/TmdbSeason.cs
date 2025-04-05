@@ -24,4 +24,7 @@ public record TmdbSeason
     
     [JsonPropertyName("poster_path")]
     public string? PosterPath { get; set; }
+    
+    [JsonPropertyName("episodes")]
+    public List<TmdbEpisode>? Episodes { get; set; }
 }

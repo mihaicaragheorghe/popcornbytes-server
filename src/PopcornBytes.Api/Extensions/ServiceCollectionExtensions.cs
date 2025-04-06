@@ -1,7 +1,13 @@
+using System.Text;
+
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+
 using PopcornBytes.Api.Episodes;
 using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Persistence;
 using PopcornBytes.Api.Seasons;
+using PopcornBytes.Api.Security;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
 
@@ -54,6 +60,36 @@ public static class ServiceCollectionExtensions
         services.AddTransient<MigrationsRunner>();
         
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+
+        return services;
+    }
+
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<JwtSettings>()
+            .Bind(configuration.GetSection("Jwt"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+        
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(opts =>
+            {
+                opts.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Secret"]!))
+                };
+            });
+
+        services.AddAuthorization();
 
         return services;
     }

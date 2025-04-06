@@ -2,3 +2,4 @@
 @seasonNumber = 3
 
 GET {{host}}/series/{{seriesId}}/seasons/{{seasonNumber}}
+Authorization: Bearer {{account.token}}

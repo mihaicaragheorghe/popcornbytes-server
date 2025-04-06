@@ -9,7 +9,8 @@ public static class EpisodeEndpoints
             {
                 var series = await service.GetEpisodesAsync(seriesId, season, cancellation);
                 return series is null ? Results.NotFound() : Results.Ok(series);
-            });
+            })
+            .RequireAuthorization();
 
         app.MapGet("/series/{seriesId:int}/seasons/{season:int}/episodes/{episode:int}",
             async Task<IResult> (int seriesId, int season, int episode, IEpisodeService service,
@@ -17,6 +18,7 @@ public static class EpisodeEndpoints
             {
                 var series = await service.GetEpisodeAsync(seriesId, season, episode, cancellation);
                 return series is null ? Results.NotFound() : Results.Ok(series);
-            });
+            })
+            .RequireAuthorization();
     }
 }

@@ -2,9 +2,11 @@
 @page = 1
 
 GET {{host}}/series/search?q={{query}}&p={{page}}
+Authorization: Bearer {{account.token}}
 
 ###
 
 @id = 111803
 
 GET {{host}}/series/{{id}}
+Authorization: Bearer {{account.token}}

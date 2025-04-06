@@ -9,6 +9,7 @@ public static class SeasonEndpoints
             {
                 var series = await service.GetSeasonAsync(seriesId, season, cancellation);
                 return series is null ? Results.NotFound() : Results.Ok(series);
-            });
+            })
+            .RequireAuthorization();
     }
 }

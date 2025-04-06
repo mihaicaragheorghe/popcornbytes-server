@@ -1,8 +1,6 @@
 using System.Reflection;
 
 using PopcornBytes.Api.Persistence;
-using PopcornBytes.Api.Tmdb;
-using PopcornBytes.Api.Tmdb.Contracts;
 
 namespace PopcornBytes.Api.Extensions;
 

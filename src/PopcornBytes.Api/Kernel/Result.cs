@@ -33,3 +33,28 @@ public sealed class Result<T>
         Func<Error, TNext> onError) =>
         IsError ? onError((Error)Error!) : onSuccess(Value!);
 }
+
+public sealed class Result
+{
+    public Error? Error { get; }
+
+    public bool IsError { get; }
+
+    private Result()
+    {
+        Error = null;
+        IsError = false;
+    }
+
+    private Result(Error error)
+    {
+        Error = error;
+        IsError = true;
+    }
+    
+    public static Result Success() => new();
+
+    public static Result Failure(Error error) => new(error);
+
+    public static implicit operator Result(Error error) => Failure(error);
+}

@@ -1,8 +1,52 @@
+@userId = bad58664-db23-4490-83b7-f4bda4362c84
+
 POST {{host}}/login
 Content-Type: application/json
-Accept: application/json
 
 {
     "username": "{{account.username}}",
     "password": "{{account.password}}"
 }
+
+### Sign-up
+
+POST {{host}}/users
+Content-Type: application/json
+
+{
+    "email": "{{account.email}}",
+    "username": "{{account.username}}",
+    "password": "{{account.password}}"
+}
+
+### Update user
+
+PUT {{host}}/users/{{userId}}
+Content-Type: application/json
+Authorization: Bearer {{account.token}}
+
+{
+    "email": "changed.email@test.io",
+    "username": "changed_username"
+}
+
+### Change password
+
+PUT {{host}}/users/{{userId}}/password
+Content-Type: application/json
+Authorization: Bearer {{account.token}}
+
+{
+  "oldPassword": "{{account.password}}",
+  "newPassword": "ChangedPassword1337"
+}
+
+### Delete user
+
+DELETE {{host}}/users/{{userId}}
+Authorization: Bearer {{account.token}}
+
+### Get user
+
+GET {{host}}/users/{{userId}}
+Authorization: Bearer {{account.token}}

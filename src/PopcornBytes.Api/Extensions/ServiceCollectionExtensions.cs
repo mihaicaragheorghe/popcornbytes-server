@@ -1,6 +1,9 @@
 using System.Text;
 
+using Dapper;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 using PopcornBytes.Api.Episodes;
@@ -10,6 +13,7 @@ using PopcornBytes.Api.Seasons;
 using PopcornBytes.Api.Security;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
+using PopcornBytes.Api.Users;
 
 namespace PopcornBytes.Api.Extensions;
 
@@ -37,6 +41,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITvSeriesService, TvSeriesService>();
         services.AddScoped<ISeasonService, SeasonService>();
         services.AddScoped<IEpisodeService, EpisodeService>();
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }
@@ -58,8 +63,13 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
         services.AddTransient<MigrationsRunner>();
+
+        services.AddScoped<IUserRepository, UserRepository>();
         
-        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
+        SqlMapper.AddTypeHandler(new SqlGuidTypeHandler());
+        SqlMapper.RemoveTypeMap(typeof(Guid));
+        SqlMapper.RemoveTypeMap(typeof(Guid?));
 
         return services;
     }
@@ -70,8 +80,6 @@ public static class ServiceCollectionExtensions
             .Bind(configuration.GetSection("Jwt"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
-        
-        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
         
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opts =>
@@ -90,7 +98,9 @@ public static class ServiceCollectionExtensions
             });
 
         services.AddAuthorization();
-
+        services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+        
         return services;
     }
 }

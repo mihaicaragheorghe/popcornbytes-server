@@ -10,11 +10,15 @@ public class User
 
     public string PasswordHash { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; init; }
+
+    public const int UsernameMaxLength = 16;
+    public const int UsernameMinLength = 3;
 
     public User(Guid id)
     {
         Id = id;
+        CreatedAt = DateTime.UtcNow;
     }
 
     private User() { }

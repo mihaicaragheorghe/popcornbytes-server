@@ -12,7 +12,7 @@ public class User
 
     public DateTime CreatedAt { get; init; }
 
-    public const int UsernameMaxLength = 16;
+    public const int UsernameMaxLength = 20;
     public const int UsernameMinLength = 3;
 
     public User(Guid id)

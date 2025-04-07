@@ -29,7 +29,7 @@ public class UserService : IUserService
 
     public async Task<Result<Guid>> CreateAsync(string username, string email, string password)
     {
-        if (!UserRegex.Password().IsMatch(password))
+        if (!IsStrongPassword(password))
         {
             return UserErrors.WeakPassword;
         }
@@ -84,7 +84,7 @@ public class UserService : IUserService
 
     public async Task<Result> ChangePasswordAsync(Guid id, string oldPassword, string newPassword)
     {
-        if (!UserRegex.Password().IsMatch(newPassword))
+        if (!IsStrongPassword(newPassword))
         {
             return UserErrors.WeakPassword;
         }
@@ -138,5 +138,10 @@ public class UserService : IUserService
             email: user.Email);
         
         return new LoginResponse(user.Id, token);
+    }
+    
+    public static bool IsStrongPassword(string password)
+    {
+        return UserRegex.Password().IsMatch(password);
     }
 }

@@ -16,8 +16,8 @@ public static class UserErrors
         code: "user.username.invalid_length",
         message: $"Username must be between {User.UsernameMinLength} and {User.UsernameMaxLength} characters long.");
 
-    public static Error InvalidUsernameFormat => Error.Validation(
-        code: "user.username.invalid_format",
+    public static Error BadUsernameFormat => Error.Validation(
+        code: "user.username.bad_format",
         message: "Username may only include letters, numbers, dots (.), underscores (_) and hyphens (-).");
 
     public static Error UsernameAlreadyExists => Error.Validation(
@@ -28,8 +28,8 @@ public static class UserErrors
         code: "user.email.empty",
         message: "Email is required");
 
-    public static Error InvalidEmailFormat => Error.Validation(
-        code: "user.email.invalid_format",
+    public static Error BadEmailFormat => Error.Validation(
+        code: "user.email.bad_format",
         message: "The provided email is not a valid email address.");
 
     public static Error EmailAlreadyExists => Error.Validation(

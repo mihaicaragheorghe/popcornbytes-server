@@ -65,7 +65,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
         {
-            return UserErrors.UserDoesNotExist;
+            return UserErrors.UserNotFound;
         }
 
         user.Username = username;
@@ -92,7 +92,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
         {
-            return UserErrors.UserDoesNotExist;
+            return UserErrors.UserNotFound;
         }
 
         if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, oldPassword) ==
@@ -111,7 +111,7 @@ public class UserService : IUserService
     {
         if (await _userRepository.GetByIdAsync(id) == null)
         {
-            return UserErrors.UserDoesNotExist;
+            return UserErrors.UserNotFound;
         }
 
         await _userRepository.DeleteAsync(id);
@@ -123,7 +123,7 @@ public class UserService : IUserService
         var user = await _userRepository.GetByUsernameAsync(request.Username);
         if (user == null)
         {
-            return UserErrors.UserDoesNotExist;
+            return UserErrors.UserNotFound;
         }
 
         if (_passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password) !=

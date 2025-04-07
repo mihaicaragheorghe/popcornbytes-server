@@ -10,6 +10,6 @@ public partial class UserRegex
     [GeneratedRegex(@"^([\w\.\-]+)@([\w\-]+)((\.(\w){2,3})+)$")]
     public static partial Regex Email();
     
-    [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,20}$")]
+    [GeneratedRegex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,32}$")]
     public static partial Regex Password();
 }

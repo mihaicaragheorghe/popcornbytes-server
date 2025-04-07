@@ -1,6 +1,12 @@
 namespace PopcornBytes.Api.Kernel;
 
-public class Validator<T>
+// todo: use DI and reflection to inject validators to reduce dependencies while testing
+public interface IValidator<in T>
+{
+    Result Validate();
+}
+
+public abstract class Validator<T> : IValidator<T>
 {
     private readonly T _subject;
 

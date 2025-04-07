@@ -4,9 +4,9 @@ namespace PopcornBytes.Api.Users;
 
 public static class UserErrors
 {
-    public static Error UserDoesNotExist => Error.Validation(
-        code: "user.not_exists",
-        message: "The user does not exist.");
+    public static Error UserNotFound => Error.Validation(
+        code: "user.not_found",
+        message: "The user was not found.");
 
     public static Error EmptyUsername => Error.Validation(
         code: "user.username.empty",
@@ -38,7 +38,7 @@ public static class UserErrors
 
     public static Error WeakPassword => Error.Validation(
         code: "user.password.weak",
-        message: "The password must be between 8-20 characters long and contain one uppercase letter, one lowercase letter and one number.");
+        message: "The password must be between 8-32 characters long and contain one uppercase letter, one lowercase letter and one number.");
 
     public static Error WrongPassword => Error.Validation(
         code: "user.password.wrong",

@@ -11,9 +11,9 @@ public class Validator<T>
         _subject = subject;
     }
 
-    protected void AddRule(Func<T, bool> rule, Error error)
+    protected void AddRule(Func<T, bool> condition, Error error)
     {
-        _rules.Add((rule, error));
+        _rules.Add((condition, error));
     }
 
     public Result Validate()

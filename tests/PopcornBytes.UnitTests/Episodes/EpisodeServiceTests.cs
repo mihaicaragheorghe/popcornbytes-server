@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 
 using PopcornBytes.Api.Episodes;
-using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Tmdb;
 using PopcornBytes.Api.Tmdb.Contracts;
 using PopcornBytes.UnitTests.TestUtils;
@@ -13,15 +12,15 @@ namespace PopcornBytes.UnitTests.Episodes;
 public class EpisodeServiceTests
 {
     private readonly Mock<ITmdbClient> _tmdbClientMock;
-    private readonly Mock<ICacheService<string, List<Episode>>> _cacheServiceMock;
+    private readonly Mock<IEpisodesCache> _cacheMock;
     private readonly EpisodeService _sut;
 
     public EpisodeServiceTests()
     {
         Mock<ILogger<EpisodeService>> loggerMock = new();
         _tmdbClientMock = new Mock<ITmdbClient>();
-        _cacheServiceMock = new Mock<ICacheService<string, List<Episode>>>();
-        _sut = new EpisodeService(loggerMock.Object, _tmdbClientMock.Object, _cacheServiceMock.Object);
+        _cacheMock = new Mock<IEpisodesCache>();
+        _sut = new EpisodeService(loggerMock.Object, _tmdbClientMock.Object, _cacheMock.Object);
     }
 
     [Fact]
@@ -31,9 +30,9 @@ public class EpisodeServiceTests
         const int series = 777;
         const int season = 3;
         var expected = EpisodeTestUtils.CreateEpisodesCollection(count: 13, seriesId: series, seasonNumber: season);
-        _cacheServiceMock
-            .Setup(cache => cache.TryGetValue($"{series}-{season}", out expected))
-            .Returns(true);
+        _cacheMock
+            .Setup(cache => cache.Get(series, season))
+            .ReturnsAsync(expected);
 
         // Act
         var actual = await _sut.GetEpisodesAsync(series, season);
@@ -94,9 +93,9 @@ public class EpisodeServiceTests
 
         // Assert
         Assert.NotNull(episodes);
-        _cacheServiceMock.Verify(cache => cache.Set($"{series}-{season}", episodes), Times.Once);
+        _cacheMock.Verify(cache => cache.Set(episodes), Times.Once);
     }
-    
+
     [Fact]
     public async Task GetEpisodesAsync_ShouldNotCacheSeries_WhenTmdbClientReturnsNull()
     {
@@ -112,7 +111,7 @@ public class EpisodeServiceTests
         _ = await _sut.GetEpisodesAsync(series, season);
 
         // Assert
-        _cacheServiceMock.Verify(cache => cache.Set(It.IsAny<string>(), It.IsAny<List<Episode>>()), Times.Never);
+        _cacheMock.Verify(cache => cache.Set(It.IsAny<List<Episode>>()), Times.Never);
     }
 
     [Fact]
@@ -123,9 +122,9 @@ public class EpisodeServiceTests
         const int season = 3;
         var episodes = EpisodeTestUtils.CreateEpisodesCollection(count: 13, seriesId: series, seasonNumber: season);
         var expected = episodes[0];
-        _cacheServiceMock
-            .Setup(cache => cache.TryGetValue($"{series}-{season}", out episodes))
-            .Returns(true);
+        _cacheMock
+            .Setup(cache => cache.Get(series, season))
+            .ReturnsAsync(episodes);
 
         // Act
         var actual = await _sut.GetEpisodeAsync(series, season, expected.EpisodeNumber);
@@ -177,9 +176,8 @@ public class EpisodeServiceTests
 
     private void SetupCacheMiss()
     {
-        List<Episode>? cachedValue = null;
-        _cacheServiceMock
-            .Setup(cache => cache.TryGetValue(It.IsAny<string>(), out cachedValue))
-            .Returns(false);
+        _cacheMock
+            .Setup(cache => cache.Get(It.IsAny<int>(), It.IsAny<int>()))
+            .ReturnsAsync((List<Episode>?)null);
     }
 }

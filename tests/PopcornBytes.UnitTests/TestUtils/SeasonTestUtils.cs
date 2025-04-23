@@ -20,7 +20,7 @@ public class SeasonTestUtils
             TvSeriesId = tvSeriesId,
             Title = title,
             Overview = overview,
-            SeasonNumber = seasonNumber,
+            Number = seasonNumber,
             EpisodeCount = episodeCount,
             AirDate = airDate is null ? null : Convert.ToDateTime(airDate),
             PosterUrl = posterUrl ?? $"/season-{seasonNumber}.jpg",

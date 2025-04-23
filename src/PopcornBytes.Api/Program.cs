@@ -18,10 +18,11 @@ builder.Services
     .AddJwtAuthentication(builder.Configuration)
     .AddTmdbClient(builder.Configuration)
     .AddCaching(builder.Configuration)
-    .AddPersistence()
+    .AddPersistence(builder.Configuration)
     .AddApplicationServices()
     .AddHealthChecks()
         .AddCheck<DbHealthCheck>("db")
+        .AddCheck<RedisHealthCheck>("redis")
         .AddCheck<TmdbHealthCheck>("tmdb");
 
 builder.Host.UseSerilog((_, config) =>

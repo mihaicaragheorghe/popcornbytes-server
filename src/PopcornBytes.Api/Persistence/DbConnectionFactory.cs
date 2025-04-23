@@ -15,7 +15,7 @@ public class DbConnectionFactory : IDbConnectionFactory
 
     public IDbConnection CreateSqlConnection()
     {
-        string? connectionString = _configuration.GetConnectionString("PopcornDB");
+        string? connectionString = _configuration.GetConnectionString("Sql");
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         return new SqliteConnection(connectionString);
     }

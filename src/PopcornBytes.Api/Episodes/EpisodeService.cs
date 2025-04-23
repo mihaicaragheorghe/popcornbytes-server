@@ -1,4 +1,3 @@
-using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Tmdb;
 
 namespace PopcornBytes.Api.Episodes;
@@ -7,12 +6,12 @@ public class EpisodeService : IEpisodeService
 {
     private readonly ILogger<EpisodeService> _logger;
     private readonly ITmdbClient _tmdbClient;
-    private readonly ICacheService<string, List<Episode>> _cache;
+    private readonly IEpisodesCache _cache;
 
     public EpisodeService(
         ILogger<EpisodeService> logger,
         ITmdbClient tmdbClient,
-        ICacheService<string, List<Episode>> cache)
+        IEpisodesCache cache)
     {
         _logger = logger;
         _tmdbClient = tmdbClient;
@@ -22,37 +21,39 @@ public class EpisodeService : IEpisodeService
     public async Task<List<Episode>?> GetEpisodesAsync(int seriesId, int seasonNumber,
         CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(CacheKey(seriesId, seasonNumber), out var cachedEpisodes))
+        var cachedEpisodes = await _cache.Get(seriesId, seasonNumber);
+        if (cachedEpisodes != null)
         {
             _logger.LogDebug("Cache hit for episodes series {id}, season {s}", seriesId, seasonNumber);
             return cachedEpisodes;
         }
-        
+
         var tmdbResponse = await _tmdbClient.GetEpisodesAsync(seriesId, seasonNumber, cancellationToken);
         if (tmdbResponse is null) return null;
-        
+
         var episodes = tmdbResponse.Select(Episode.FromTmdbEpisode).ToList();
-        _cache.Set(CacheKey(seriesId, seasonNumber), episodes);
+        bool ok = await _cache.Set(episodes);
+        if (!ok)
+        {
+            _logger.LogError("Could not cache episodes for series ID {sid}, season {s}", seriesId, seasonNumber);
+        }
+
         return episodes;
     }
 
     public async Task<Episode?> GetEpisodeAsync(int seriesId, int seasonNumber, int episodeNumber,
         CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(CacheKey(seriesId, seasonNumber), out var cachedEpisodes))
+        var cachedEpisodes = await _cache.Get(seriesId, seasonNumber);
+        if (cachedEpisodes != null)
         {
-            _logger.LogDebug("Cache hit for series {id}, season {s}", seriesId, seasonNumber);
+            _logger.LogDebug("Cache hit for episodes series {id}, season {s}", seriesId, seasonNumber);
             return cachedEpisodes.FirstOrDefault(e => e.EpisodeNumber == episodeNumber);
         }
-        
+
         var tmdbResponse = await _tmdbClient.GetEpisodeAsync(seriesId, seasonNumber, episodeNumber, cancellationToken);
         if (tmdbResponse is null) return null;
-        
-        return Episode.FromTmdbEpisode(tmdbResponse);
-    }
 
-    private string CacheKey(int seriesId, int seasonNumber)
-    {
-        return $"{seriesId}-{seasonNumber}";
+        return Episode.FromTmdbEpisode(tmdbResponse);
     }
 }

@@ -12,7 +12,7 @@ public class Season
     
     public string Overview { get; set; } = string.Empty;
     
-    public int SeasonNumber { get; set; }
+    public int Number { get; set; }
     
     public int EpisodeCount { get; set; }
     
@@ -27,7 +27,7 @@ public class Season
             TvSeriesId = seriesId,
             Title = tmdbSeason.Name,
             Overview = tmdbSeason.Overview,
-            SeasonNumber = tmdbSeason.SeasonNumber,
+            Number = tmdbSeason.SeasonNumber,
             EpisodeCount = tmdbSeason.EpisodeCount,
             AirDate = string.IsNullOrEmpty(tmdbSeason.AirDate) ? null : Convert.ToDateTime(tmdbSeason.AirDate),
             PosterUrl = tmdbSeason.PosterPath

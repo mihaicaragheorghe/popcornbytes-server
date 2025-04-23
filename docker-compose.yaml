@@ -1,0 +1,33 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+      - ConnectionStrings__Sql=Data Source=/app.db
+      - Tmdb__ApiKey=${TMDB_API_KEY}
+      - Tmdb__BaseUrl=https://api.themoviedb.org/3
+      - Tmdb__ImagesBaseUrl=https://image.tmdb.org/t/p
+      - Jwt__Issuer=popcorn-byters
+      - Jwt__Audience=popcorn-bytes
+      - Jwt__TokenExpirationInMinutes=720
+      - Jwt__Secret=${JWT_KEY}
+    volumes:
+      - sql-data:/data/sql
+    depends_on:
+      - redis
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
+  sql-data:

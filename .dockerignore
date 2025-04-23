@@ -2,3 +2,7 @@ bin/
 obj/
 out/
 TestResults/
+*.user
+*.vs
+.vscode/
+.env

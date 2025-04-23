@@ -6,7 +6,7 @@ namespace PopcornBytes.UnitTests.Persistence;
 
 public class DbConnectionFactoryTests
 {
-    private const string ConfigPath = "ConnectionStrings:PopcornDB";
+    private const string ConfigPath = "ConnectionStrings:Sql";
 
     [Fact, Trait("Category", "Integration")]
     public void CreateSqlConnection_ShouldThrowArgumentException_WhenConnectionStringIsNull()

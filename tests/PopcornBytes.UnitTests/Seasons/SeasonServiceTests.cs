@@ -14,15 +14,15 @@ namespace PopcornBytes.UnitTests.Seasons;
 public class SeasonServiceTests
 {
     private readonly Mock<ITmdbClient> _tmdbClientMock;
-    private readonly Mock<ICacheService<int, TvSeries>> _cacheMock;
+    private readonly Mock<ITvSeriesCache> _seriesCacheMock;
     private readonly SeasonService _sut;
 
     public SeasonServiceTests()
     {
         Mock<ILogger<SeasonService>> loggerMock = new();
         _tmdbClientMock = new Mock<ITmdbClient>();
-        _cacheMock = new Mock<ICacheService<int, TvSeries>>();
-        _sut = new SeasonService(loggerMock.Object, _cacheMock.Object, _tmdbClientMock.Object);
+        _seriesCacheMock = new Mock<ITvSeriesCache>();
+        _sut = new SeasonService(loggerMock.Object, _seriesCacheMock.Object, _tmdbClientMock.Object);
     }
     
     [Fact]
@@ -32,12 +32,12 @@ public class SeasonServiceTests
         var series = TvSeriesTestUtils.CreateTvSeries();
         var expected = SeasonTestUtils.CreateSeason(id: 666, tvSeriesId: series.Id, seasonNumber: 777);
         series.Seasons.Add(expected);
-        _cacheMock
-            .Setup(cache => cache.TryGetValue(expected.TvSeriesId, out series))
-            .Returns(true);
+        _seriesCacheMock
+            .Setup(cache => cache.Get(expected.TvSeriesId))
+            .ReturnsAsync(series);
         
         // Act
-        var actual = await _sut.GetSeasonAsync(expected.TvSeriesId, expected.SeasonNumber);
+        var actual = await _sut.GetSeasonAsync(expected.TvSeriesId, expected.Number);
         
         // Assert
         Assert.Equal(expected, actual);
@@ -48,9 +48,9 @@ public class SeasonServiceTests
     {
         // Arrange
         var series = TvSeriesTestUtils.CreateTvSeries();
-        _cacheMock
-            .Setup(cache => cache.TryGetValue(series.Id, out series))
-            .Returns(true);
+        _seriesCacheMock
+            .Setup(cache => cache.Get(series.Id))
+            .ReturnsAsync(series);
         
         // Act
         var season = await _sut.GetSeasonAsync(series.Id, -1);
@@ -93,9 +93,8 @@ public class SeasonServiceTests
     
     private void SetupCacheMiss()
     {
-        TvSeries? cachedValue = null;
-        _cacheMock
-            .Setup(cache => cache.TryGetValue(It.IsAny<int>(), out cachedValue))
-            .Returns(false);
+        _seriesCacheMock
+            .Setup(cache => cache.Get(It.IsAny<int>()))
+            .ReturnsAsync((TvSeries?)null);
     }
 }

@@ -1,4 +1,3 @@
-using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
 
@@ -7,12 +6,12 @@ namespace PopcornBytes.Api.Seasons;
 public class SeasonService : ISeasonService
 {
     private readonly ILogger<SeasonService> _logger;
-    private readonly ICacheService<int, TvSeries> _cache;
+    private readonly ITvSeriesCache _cache;
     private readonly ITmdbClient _tmdbClient;
 
     public SeasonService(
         ILogger<SeasonService> logger,
-        ICacheService<int, TvSeries> cache,
+        ITvSeriesCache cache,
         ITmdbClient tmdbClient)
     {
         _tmdbClient = tmdbClient;
@@ -23,10 +22,11 @@ public class SeasonService : ISeasonService
     public async Task<Season?> GetSeasonAsync(int seriesId, int seasonNumber,
         CancellationToken cancellationToken = default)
     {
-        if (_cache.TryGetValue(seriesId, out TvSeries cachedSeries))
+        var cachedSeries = await _cache.Get(seriesId);
+        if (cachedSeries != null)
         {
             _logger.LogDebug("Cache hit for TV series with ID {id} on season lookup", seriesId);
-            return cachedSeries.Seasons.FirstOrDefault(s => s.SeasonNumber == seasonNumber);
+            return cachedSeries.Seasons.FirstOrDefault(s => s.Number == seasonNumber);
         }
 
         var tmdbResponse = await _tmdbClient.GetSeasonAsync(seriesId, seasonNumber, cancellationToken);

@@ -1,5 +1,5 @@
 @seriesId = 111803
-@seasonNumber = 3
+@seasonNumber = 1
 
 GET {{host}}/series/{{seriesId}}/seasons/{{seasonNumber}}/episodes
 Authorization: Bearer {{account.token}}

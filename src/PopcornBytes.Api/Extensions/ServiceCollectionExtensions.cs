@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
 using PopcornBytes.Api.Episodes;
+using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Persistence;
 using PopcornBytes.Api.Seasons;
 using PopcornBytes.Api.Security;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;
 using PopcornBytes.Api.Users;
+using PopcornBytes.Contracts.Series;
 
 using StackExchange.Redis;
 
@@ -49,8 +51,12 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddCaching(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<ITvSeriesCache, TvSeriesCache>();
-        services.AddScoped<IEpisodesCache, EpisodesCache>();
+        services.AddSingleton<ITvSeriesCache, TvSeriesCache>();
+        services.AddSingleton<IEpisodesCache, EpisodesCache>();
+        services.AddSingleton<ICacheService<string, SearchTvSeriesResponse>>(_ =>
+            new CacheService<string, SearchTvSeriesResponse>(
+                capacity: Convert.ToInt32(configuration["Cache:TvSeriesSearch:Capacity"] ?? "256"),
+                expirationInHours: Convert.ToInt32(configuration["Cache:TvSeries:ExpirationInHours"] ?? "24")));
 
         return services;
     }

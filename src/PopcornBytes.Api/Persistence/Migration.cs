@@ -36,7 +36,7 @@ public abstract class Migration
 
     protected int Execute(string cmd)
     {
-        Logger.LogInformation("{n}{cmd}", Environment.NewLine, cmd);
+        Logger.LogInformation("{n}{cmd}{n}", Environment.NewLine, cmd, Environment.NewLine);
         using var connection = Context.ConnectionFactory.CreateSqlConnection();
         connection.Open();
 

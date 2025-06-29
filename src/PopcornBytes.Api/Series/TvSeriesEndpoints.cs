@@ -19,5 +19,29 @@ internal static class TvSeriesEndpoints
                     return series is null ? Results.NotFound() : Results.Ok(series);
                 })
             .RequireAuthorization();
+
+        app.MapPost("/users/{userId:guid}/series/{seriesId:int}/watchlist",
+                async Task<IResult> (ITvSeriesService service, Guid userId, int seriesId) =>
+                {
+                    await service.AddToWatchlist(userId, seriesId);
+                    return Results.Ok();
+                })
+            .RequireAuthorization();
+
+        app.MapDelete("/users/{userId:guid}/series/{seriesId:int}/watchlist",
+                async Task<IResult> (ITvSeriesService service, Guid userId, int seriesId) =>
+                {
+                    await service.RemoveFromWatchlist(userId, seriesId);
+                    return Results.Ok();
+                })
+            .RequireAuthorization();
+
+        app.MapGet("/users/{userId:guid}/series/watchlist",
+                async Task<IResult> (ITvSeriesService service, Guid userId) =>
+                {
+                    var watchlist = await service.GetWatchlistAsync(userId);
+                    return Results.Ok(watchlist);
+                })
+                .RequireAuthorization();
     }
 }

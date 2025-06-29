@@ -21,4 +21,8 @@
         <ProjectReference Include="..\PopcornBytes.Contracts\PopcornBytes.Contracts.csproj" />
     </ItemGroup>
 
+    <PropertyGroup>
+        <NoWarn>IDE0290</NoWarn>
+    </PropertyGroup>
+
 </Project>

@@ -61,6 +61,12 @@ public static class TmdbTestUtils
             Seasons = seasons ?? CreateTmdbSeasonCollection(9),
         };
 
+    public static List<TmdbTvSeries> CreateTmdbTvSeriesCollection(int count, int startId = 1) =>
+        Enumerable
+            .Range(0, count)
+            .Select(i => CreateTmdbTvSeries(id: startId + i))
+            .ToList();
+
     public static TmdbEpisode CreateTmdbEpisode(
         int id = 1,
         int seriesId = 1,
@@ -108,9 +114,9 @@ public static class TmdbTestUtils
             Episodes = episodes ?? CreateTmdbEpisodeCollection(13, id),
         };
     
-    public static List<TmdbSeason> CreateTmdbSeasonCollection(int count) => Enumerable
-        .Range(1, count)
-        .Select(i => CreateTmdbSeason(id: i))
+    public static List<TmdbSeason> CreateTmdbSeasonCollection(int count, int startId = 1) => Enumerable
+        .Range(0, count)
+        .Select(i => CreateTmdbSeason(id: startId + i))
         .ToList();
     
     public static List<TmdbEpisode> CreateTmdbEpisodeCollection(int count, int seriesId = 1, int season = 1) => Enumerable
@@ -118,8 +124,8 @@ public static class TmdbTestUtils
         .Select(i => CreateTmdbEpisode(id: i, episodeNumber: i, seriesId: seriesId, seasonNumber: season))
         .ToList();
 
-    public static SearchTvSeriesResult[] CreateSearchSeriesResultCollection(int count) => Enumerable
-        .Range(1, count)
-        .Select(i => CreateSearchSeriesResult(id: i))
+    public static SearchTvSeriesResult[] CreateSearchSeriesResultCollection(int count, int startId = 1) => Enumerable
+        .Range(0, count)
+        .Select(i => CreateSearchSeriesResult(id: startId + i))
         .ToArray();
 }

@@ -16,6 +16,7 @@ public class TvSeriesServiceTests
     private readonly Mock<ITmdbClient> _tmdbClientMock;
     private readonly Mock<ITvSeriesCache> _cacheMock;
     private readonly Mock<ICacheService<string, SearchTvSeriesResponse>> _searchCacheMock;
+    private readonly Mock<ITvSeriesRepository> _seriesRepositoryMock = new();
     private readonly TvSeriesService _sut;
 
     public TvSeriesServiceTests()
@@ -28,7 +29,8 @@ public class TvSeriesServiceTests
             logger: loggerMock.Object,
             tmdbClient: _tmdbClientMock.Object,
             cache: _cacheMock.Object,
-            searchCache: _searchCacheMock.Object);
+            searchCache: _searchCacheMock.Object,
+            seriesRepository: _seriesRepositoryMock.Object);
     }
 
     [Fact]
@@ -168,6 +170,93 @@ public class TvSeriesServiceTests
 
         // Assert
         _searchCacheMock.Verify(x => x.Set($"{q}:{p}", response), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddToWatchlist_ShouldCallRepository_WhenCalled()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var seriesId = 123;
+        var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // Act
+        await _sut.AddToWatchlist(userId, seriesId);
+
+        // Assert
+        _seriesRepositoryMock.Verify(repo => repo.AddToWatchlistAsync(userId, seriesId, addedAtUnix), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveFromWatchlist_ShouldCallRepository_WhenCalled()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var seriesId = 123;
+
+        // Act
+        await _sut.RemoveFromWatchlist(userId, seriesId);
+
+        // Assert
+        _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchlistAsync(userId, seriesId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetWatchlistAsync_ShouldRetrieveCachedSeries_WhenCached()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedIds = new List<int> { 1, 2, 3 };
+        var expected = TvSeriesTestUtils.CreateCollection(count: 3, startId: expectedIds[0]);
+
+        _seriesRepositoryMock
+            .Setup(repo => repo.GetWatchlistAsync(userId))
+            .ReturnsAsync(expectedIds);
+        _cacheMock
+            .Setup(cache => cache.Get(expectedIds))
+            .ReturnsAsync(expected);
+
+        // Act
+        var actual = await _sut.GetWatchlistAsync(userId, CancellationToken.None);
+
+        // Assert
+        Assert.NotEmpty(actual);
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task GetWatchlistAsync_ShouldFetchFromTmdb_WhenNotCached()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedIds = new List<int> { 1, 2, 3, 4, 5 };
+        var cached = TvSeriesTestUtils.CreateCollection(count: 3, startId: expectedIds[0]);
+        var fetched = TmdbTestUtils.CreateTmdbTvSeriesCollection(count: 2, startId: expectedIds[3]);
+        var expected = new List<TvSeries>(cached)
+        {
+            TvSeries.FromTmdbSeries(fetched[0]),
+            TvSeries.FromTmdbSeries(fetched[1])
+        };
+
+        _seriesRepositoryMock
+            .Setup(repo => repo.GetWatchlistAsync(userId))
+            .ReturnsAsync(expectedIds);
+        _cacheMock
+            .Setup(cache => cache.Get(expectedIds))
+            .ReturnsAsync(cached);
+        _tmdbClientMock
+            .Setup(client => client.GetTvSeriesAsync(expectedIds[3], It.IsAny<CancellationToken>()))
+            .ReturnsAsync(fetched[0]);
+        _tmdbClientMock
+            .Setup(client => client.GetTvSeriesAsync(expectedIds[4], It.IsAny<CancellationToken>()))
+            .ReturnsAsync(fetched[1]);
+
+        // Act
+        var actual = await _sut.GetWatchlistAsync(userId, CancellationToken.None);
+
+        // Assert
+        Assert.NotEmpty(actual);
+        Assert.Equivalent(expected, actual);
     }
 
     private void SetupCacheMiss()

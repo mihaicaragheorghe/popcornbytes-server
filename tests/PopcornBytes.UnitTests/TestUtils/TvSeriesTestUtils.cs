@@ -38,4 +38,14 @@ public static class TvSeriesTestUtils
             LastEpisode = lastEpisode ?? EpisodeTestUtils.CreateEpisode(seriesId: id),
             Seasons = seasons ?? SeasonTestUtils.CreateSeasons(seasonsCount),
         };
+
+    public static List<TvSeries> CreateCollection(int count, int startId = 1)
+    {
+        var series = new List<TvSeries>();
+        for (int i = 0; i < count; i++)
+        {
+            series.Add(CreateTvSeries(id: startId + i));
+        }
+        return series;
+    }
 }

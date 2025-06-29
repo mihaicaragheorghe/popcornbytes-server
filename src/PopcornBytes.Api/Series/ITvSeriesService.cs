@@ -8,4 +8,10 @@ public interface ITvSeriesService
         CancellationToken cancellationToken = default);
 
     Task<TvSeries?> GetTvSeriesAsync(int id, CancellationToken cancellationToken = default);
+
+    Task AddToWatchlist(Guid userId, int seriesId);
+
+    Task RemoveFromWatchlist(Guid userId, int seriesId);
+
+    Task<List<TvSeries>> GetWatchlistAsync(Guid userId, CancellationToken cancellationToken = default);
 }

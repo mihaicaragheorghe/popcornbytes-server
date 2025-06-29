@@ -4,8 +4,8 @@ POST {{host}}/login
 Content-Type: application/json
 
 {
-    "username": "{{account.username}}",
-    "password": "{{account.password}}"
+    "username": "{{username}}",
+    "password": "{{password}}"
 }
 
 ### Sign-up
@@ -14,16 +14,16 @@ POST {{host}}/users
 Content-Type: application/json
 
 {
-    "email": "{{account.email}}",
-    "username": "{{account.username}}",
-    "password": "{{account.password}}"
+    "email": "{{email}}",
+    "username": "{{username}}",
+    "password": "{{password}}"
 }
 
 ### Update user
 
 PUT {{host}}/users/{{userId}}
 Content-Type: application/json
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}
 
 {
     "email": "changed.email@test.io",
@@ -34,19 +34,19 @@ Authorization: Bearer {{account.token}}
 
 PUT {{host}}/users/{{userId}}/password
 Content-Type: application/json
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}
 
 {
-  "oldPassword": "{{account.password}}",
+  "oldPassword": "{{password}}",
   "newPassword": "ChangedPassword1337"
 }
 
 ### Delete user
 
 DELETE {{host}}/users/{{userId}}
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}
 
 ### Get user
 
 GET {{host}}/users/{{userId}}
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}

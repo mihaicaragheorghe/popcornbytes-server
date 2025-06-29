@@ -1,31 +1,31 @@
 ### Authentication
 
-GET {{tmdb.baseUrl}}/authentication?api_key={{tmdb.apiKey}}
+GET {{tmdbBaseUrl}}/authentication?api_key={{tmdbApiKey}}
 
 ### Configuration
 
-GET {{tmdb.baseUrl}}/configuration?api_key={{tmdb.apiKey}}
+GET {{tmdbBaseUrl}}/configuration?api_key={{tmdbApiKey}}
 
 ### Seach TV
 
 @query = "White lotus"
 
-GET {{tmdb.baseUrl}}/search/tv?api_key={{tmdb.apiKey}}&query={{query}}
+GET {{tmdbBaseUrl}}/search/tv?api_key={{tmdbApiKey}}&query={{query}}
 
 ### Get TV series
 
 @seriesId = 111803
 
-GET {{tmdb.baseUrl}}/tv/{{seriesId}}?api_key={{tmdb.apiKey}}
+GET {{tmdbBaseUrl}}/tv/{{seriesId}}?api_key={{tmdbApiKey}}
 
 ### Get season
 
 @seasonNumber = 3
 
-GET {{tmdb.baseUrl}}/tv/{{seriesId}}/season/{{seasonNumber}}?api_key={{tmdb.apiKey}}
+GET {{tmdbBaseUrl}}/tv/{{seriesId}}/season/{{seasonNumber}}?api_key={{tmdbApiKey}}
 
 ### Get episode
 
 @episodeNumber = 1
 
-GET {{tmdb.baseUrl}}/tv/{{seriesId}}/season/{{seasonNumber}}/episode/{{episodeNumber}}?api_key={{tmdb.apiKey}}
+GET {{tmdbBaseUrl}}/tv/{{seriesId}}/season/{{seasonNumber}}/episode/{{episodeNumber}}?api_key={{tmdbApiKey}}

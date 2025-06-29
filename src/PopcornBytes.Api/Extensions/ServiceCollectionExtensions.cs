@@ -41,10 +41,10 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        services.AddScoped<ITvSeriesService, TvSeriesService>();
-        services.AddScoped<ISeasonService, SeasonService>();
-        services.AddScoped<IEpisodeService, EpisodeService>();
-        services.AddScoped<IUserService, UserService>();
+        services.AddSingleton<ITvSeriesService, TvSeriesService>();
+        services.AddSingleton<ISeasonService, SeasonService>();
+        services.AddSingleton<IEpisodeService, EpisodeService>();
+        services.AddSingleton<IUserService, UserService>();
 
         return services;
     }
@@ -69,7 +69,8 @@ public static class ServiceCollectionExtensions
             configuration.GetConnectionString("Redis")
             ?? throw new ArgumentException("No connection string configured for redis")));
 
-        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddSingleton<IUserRepository, UserRepository>();
+        services.AddSingleton<ITvSeriesRepository, TvSeriesRepository>();
 
         DefaultTypeMap.MatchNamesWithUnderscores = true;
         SqlMapper.AddTypeHandler(new SqlGuidTypeHandler());

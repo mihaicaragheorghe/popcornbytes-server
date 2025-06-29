@@ -7,8 +7,9 @@ internal static class TvSeriesEndpoints
     public static void MapSeriesEndpoints(this WebApplication app)
     {
         app.MapGet("/series/search",
-            async Task<IResult> (ITvSeriesService service, string q, int p = 1, CancellationToken cancellation = default) =>
-                Results.Ok(await service.SearchTvSeriesAsync(q, p, cancellation)))
+                async Task<IResult> (ITvSeriesService service, string q, int p = 1,
+                        CancellationToken cancellation = default) =>
+                    Results.Ok(await service.SearchTvSeriesAsync(q, p, cancellation)))
             .Produces<SearchTvSeriesResponse>()
             .RequireAuthorization();
 
@@ -20,16 +21,16 @@ internal static class TvSeriesEndpoints
                 })
             .RequireAuthorization();
 
-        app.MapPost("/users/{userId:guid}/series/{seriesId:int}/watchlist",
-                async Task<IResult> (ITvSeriesService service, Guid userId, int seriesId) =>
+        app.MapPost("/series/watchlist",
+                async Task<IResult> (WatchlistRequest request, ITvSeriesService service) =>
                 {
-                    await service.AddToWatchlist(userId, seriesId);
+                    await service.AddToWatchlist(request.UserId, request.SeriesId);
                     return Results.Ok();
                 })
             .RequireAuthorization();
 
         app.MapDelete("/users/{userId:guid}/series/{seriesId:int}/watchlist",
-                async Task<IResult> (ITvSeriesService service, Guid userId, int seriesId) =>
+                async Task<IResult> (Guid userId, int seriesId, ITvSeriesService service) =>
                 {
                     await service.RemoveFromWatchlist(userId, seriesId);
                     return Results.Ok();
@@ -37,11 +38,11 @@ internal static class TvSeriesEndpoints
             .RequireAuthorization();
 
         app.MapGet("/users/{userId:guid}/series/watchlist",
-                async Task<IResult> (ITvSeriesService service, Guid userId) =>
+                async Task<IResult> (Guid userId, ITvSeriesService service, CancellationToken cancellation) =>
                 {
-                    var watchlist = await service.GetWatchlistAsync(userId);
+                    var watchlist = await service.GetWatchlistAsync(userId, cancellation);
                     return Results.Ok(watchlist);
                 })
-                .RequireAuthorization();
+            .RequireAuthorization();
     }
 }

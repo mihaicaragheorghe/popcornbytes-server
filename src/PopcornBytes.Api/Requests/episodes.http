@@ -2,11 +2,11 @@
 @seasonNumber = 1
 
 GET {{host}}/series/{{seriesId}}/seasons/{{seasonNumber}}/episodes
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}
 
 ###
 
 @episodeNumber = 8
 
 GET {{host}}/series/{{seriesId}}/seasons/{{seasonNumber}}/episodes/{{episodeNumber}}
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}

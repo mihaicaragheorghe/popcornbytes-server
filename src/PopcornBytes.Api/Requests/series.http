@@ -1,12 +1,36 @@
-@query = "White lotus"
+@query = "Seinfeld"
 @page = 1
 
 GET {{host}}/series/search?q={{query}}&p={{page}}
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}
 
-###
+### GET series by ID
 
-@id = 111803
+@id = 1400
 
 GET {{host}}/series/{{id}}
-Authorization: Bearer {{account.token}}
+Authorization: Bearer {{token}}
+
+### Add series to watchlist
+
+@userId = 8429bc76-e0a4-40ff-9903-ac34445ecb31
+
+POST {{host}}/series/watchlist
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "userId": "{{userId}}",
+  "seriesId": "{{id}}"
+}
+
+### Remove from watchlist
+
+DELETE {{host}}/users/{{userId}}/series/{{id}}/watchlist
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+### Get watchlist
+
+GET {{host}}/users/{{userId}}/series/watchlist
+Authorization: Bearer {{token}}

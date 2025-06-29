@@ -12,7 +12,7 @@ public class TvSeriesRepository(IDbConnectionFactory connectionFactory) : ITvSer
 
         return await connection.ExecuteAsync(
             """
-            INSERT INTO series_watchlist (user_id, series_id, added_at_unix)
+            INSERT OR IGNORE INTO series_watchlist (user_id, series_id, added_at_unix)
             VALUES (@userId, @seriesId, @addedAtUnix);
             """,
             new { userId, seriesId, addedAtUnix });

@@ -14,6 +14,7 @@ public class CreateSeriesWatchingTableMigration : Migration
                     series_id INT NOT NULL,
                     started_at_unix INT NOT NULL,
                     is_stopped INT NOT NULL DEFAULT 0,
+                    updated_at_unix INT NOT NULL DEFAULT (strftime('%s', 'now')),
                     PRIMARY KEY (user_id, series_id)
                 );
 

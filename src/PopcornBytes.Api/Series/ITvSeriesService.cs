@@ -14,4 +14,20 @@ public interface ITvSeriesService
     Task RemoveFromWatchlist(Guid userId, int seriesId);
 
     Task<List<TvSeries>> GetWatchlistAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task AddToCompleted(Guid userId, int seriesId);
+
+    Task RemoveFromCompleted(Guid userId, int seriesId);
+
+    Task<List<TvSeries>> GetCompletedAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task AddToWatching(Guid userId, int seriesId);
+
+    Task StopWatching(Guid userId, int seriesId);
+
+    Task ResumeWatching(Guid userId, int seriesId);
+
+    Task RemoveFromWatching(Guid userId, int seriesId);
+
+    Task<List<TvSeries>> GetWatchingAsync(Guid userId, CancellationToken cancellationToken = default);
 }

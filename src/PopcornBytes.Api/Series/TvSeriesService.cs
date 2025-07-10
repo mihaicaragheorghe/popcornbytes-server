@@ -84,6 +84,68 @@ public class TvSeriesService : ITvSeriesService
         return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
     }
 
+    public Task AddToCompleted(Guid userId, int seriesId)
+    {
+        _logger.LogDebug("Adding series {s} to completed for user {u}", seriesId, userId);
+
+        long completedAtUnix = DateTime.UtcNow.ToUnixTime();
+
+        return _seriesRepository.AddToCompletedAsync(userId, seriesId, completedAtUnix);
+    }
+
+    public Task RemoveFromCompleted(Guid userId, int seriesId)
+    {
+        return _seriesRepository.RemoveFromCompletedAsync(userId, seriesId);
+    }
+
+    public async Task<List<TvSeries>> GetCompletedAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var ids = await _seriesRepository.GetCompletedAsync(userId);
+        if (!ids.Any())
+        {
+            _logger.LogDebug("No completed series found for user {userId}", userId);
+            return [];
+        }
+
+        return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
+    }
+
+    public Task AddToWatching(Guid userId, int seriesId)
+    {
+        _logger.LogDebug("Adding series {s} to watching for user {u}", seriesId, userId);
+        return _seriesRepository.AddToWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+    }
+
+    public Task StopWatching(Guid userId, int seriesId)
+    {
+        _logger.LogDebug("Stopping watching series {s} for user {u}", seriesId, userId);
+        return _seriesRepository.StopWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+    }
+
+    public Task ResumeWatching(Guid userId, int seriesId)
+    {
+        _logger.LogDebug("Resuming watching series {s} for user {u}", seriesId, userId);
+        return _seriesRepository.ResumeWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+    }
+
+    public Task RemoveFromWatching(Guid userId, int seriesId)
+    {
+        _logger.LogDebug("Removing series {s} from watching for user {u}", seriesId, userId);
+        return _seriesRepository.RemoveFromWatchingAsync(userId, seriesId);
+    }
+
+    public async Task<List<TvSeries>> GetWatchingAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        var ids = await _seriesRepository.GetWatchingAsync(userId);
+        if (!ids.Any())
+        {
+            _logger.LogDebug("No watching series found for user {userId}", userId);
+            return [];
+        }
+
+        return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
+    }
+
     private async Task<List<TvSeries>> GetFromCacheOrTmdbAsync(IEnumerable<int> ids, CancellationToken cancellationToken)
     {
         var cachedSeries = await _cache.Get(ids);

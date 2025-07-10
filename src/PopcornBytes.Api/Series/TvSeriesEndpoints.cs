@@ -44,5 +44,37 @@ internal static class TvSeriesEndpoints
                     return Results.Ok(watchlist);
                 })
             .RequireAuthorization();
+
+        app.MapPost("users/{userId:guid}/series/{seriesId:int}/completed",
+                async Task<IResult> (Guid userId, int seriesId, ITvSeriesService service) =>
+                {
+                    await service.AddToCompleted(userId, seriesId);
+                    return Results.Ok();
+                })
+            .RequireAuthorization();
+
+        app.MapDelete("/users/{userId:guid}/series/{seriesId:int}/completed",
+                async Task<IResult> (Guid userId, int seriesId, ITvSeriesService service) =>
+                {
+                    await service.RemoveFromCompleted(userId, seriesId);
+                    return Results.Ok();
+                })
+            .RequireAuthorization();
+
+        app.MapGet("/users/{userId:guid}/series/completed",
+                async Task<IResult> (Guid userId, ITvSeriesService service, CancellationToken cancellation) =>
+                {
+                    var completed = await service.GetCompletedAsync(userId, cancellation);
+                    return Results.Ok(completed);
+                })
+            .RequireAuthorization();
+
+        app.MapPost("/users/{userId:guid}/series/{seriesId:int}/watching",
+                async Task<IResult> (Guid userId, int seriesId, ITvSeriesService service) =>
+                {
+                    await service.AddToWatching(userId, seriesId);
+                    return Results.Ok();
+                })
+            .RequireAuthorization();
     }
 }

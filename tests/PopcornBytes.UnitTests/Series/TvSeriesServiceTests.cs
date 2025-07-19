@@ -179,6 +179,9 @@ public class TvSeriesServiceTests
         const int seriesId = 123;
         var userId = Guid.NewGuid();
         var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        _seriesRepositoryMock
+            .Setup(x => x.AddToCompletedAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(1);
 
         // Act
         await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Watchlist);
@@ -194,6 +197,9 @@ public class TvSeriesServiceTests
         const int seriesId = 123;
         var userId = Guid.NewGuid();
         var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        _seriesRepositoryMock
+            .Setup(x => x.AddToCompletedAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(1);
 
         // Act
         await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Watching);
@@ -209,6 +215,9 @@ public class TvSeriesServiceTests
         const int seriesId = 123;
         var userId = Guid.NewGuid();
         var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        _seriesRepositoryMock
+            .Setup(x => x.AddToCompletedAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(1);
 
         // Act
         await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Completed);
@@ -223,6 +232,9 @@ public class TvSeriesServiceTests
         // Arrange
         const int seriesId = 123;
         var userId = Guid.NewGuid();
+        _seriesRepositoryMock
+            .Setup(x => x.AddToCompletedAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(1);
 
         // Act
         var exception =
@@ -248,7 +260,7 @@ public class TvSeriesServiceTests
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchlistAsync(userId, seriesId), Times.Once);
     }
-    
+
     [Fact]
     public async Task TrackAsync_ShouldNotRemoveFromWatchlist_WhenAddToWatchingFailed()
     {
@@ -265,7 +277,7 @@ public class TvSeriesServiceTests
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchlistAsync(userId, seriesId), Times.Never);
     }
-    
+
     [Fact]
     public async Task TrackAsync_ShouldRemoveFromWatchlist_WhenStateIsCompleted()
     {
@@ -282,7 +294,7 @@ public class TvSeriesServiceTests
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchlistAsync(userId, seriesId), Times.Once);
     }
-    
+
     [Fact]
     public async Task TrackAsync_ShouldNotRemoveFromWatchlist_WhenAddToCompletedFailed()
     {
@@ -299,7 +311,7 @@ public class TvSeriesServiceTests
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchlistAsync(userId, seriesId), Times.Never);
     }
-    
+
     [Fact]
     public async Task TrackAsync_ShouldRemoveFromWatching_WhenStateIsCompleted()
     {
@@ -309,14 +321,14 @@ public class TvSeriesServiceTests
         _seriesRepositoryMock
             .Setup(x => x.AddToCompletedAsync(userId, seriesId, It.IsAny<long>()))
             .ReturnsAsync(1);
-        
+
         // Act
         await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Completed);
 
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchingAsync(userId, seriesId), Times.Once);
     }
-    
+
     [Fact]
     public async Task TrackAsync_ShouldNotRemoveFromWatching_WhenAddToCompletedFailed()
     {
@@ -526,6 +538,78 @@ public class TvSeriesServiceTests
         // Assert
         Assert.NotEmpty(actual);
         Assert.Equivalent(expected, actual);
+    }
+
+    [Fact]
+    public async Task StopWatchingAsync_ShouldReturnSuccess_WhenRowsAffected()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+        _seriesRepositoryMock
+            .Setup(repo => repo.StopWatchingAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _sut.StopWatchingAsync(userId, seriesId);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public async Task StopWatchingAsync_ShouldReturnError_WhenNoRowsAffected()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+        _seriesRepositoryMock
+            .Setup(repo => repo.StopWatchingAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(0);
+
+        // Act
+        var result = await _sut.StopWatchingAsync(userId, seriesId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.NotNull(result.Error);
+    }
+
+    [Fact]
+    public async Task ResumeWatchingAsync_ShouldReturnSuccess_WhenRowsAffected()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+        _seriesRepositoryMock
+            .Setup(repo => repo.ResumeWatchingAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(1);
+
+        // Act
+        var result = await _sut.ResumeWatchingAsync(userId, seriesId);
+
+        // Assert
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public async Task ResumeWatchingAsync_ShouldReturnError_WhenNoRowsAffected()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+        _seriesRepositoryMock
+            .Setup(repo => repo.ResumeWatchingAsync(userId, seriesId, It.IsAny<long>()))
+            .ReturnsAsync(0);
+
+        // Act
+        var result = await _sut.ResumeWatchingAsync(userId, seriesId);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.NotNull(result.Error);
     }
 
     private void SetupCacheMiss()

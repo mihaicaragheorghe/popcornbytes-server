@@ -97,8 +97,8 @@ internal static class TvSeriesEndpoints
 
                     var result = action switch
                     {
-                        "stop" => await service.StopWatching(userId: userId, seriesId: seriesId),
-                        "resume" => await service.ResumeWatching(userId: userId, seriesId: seriesId),
+                        "stop" => await service.StopWatchingAsync(userId: userId, seriesId: seriesId),
+                        "resume" => await service.ResumeWatchingAsync(userId: userId, seriesId: seriesId),
                         _ => throw new ArgumentOutOfRangeException(nameof(action))
                     };
 

@@ -17,7 +17,7 @@ public interface ITvSeriesService
 
     Task RemovedTrackedAsync(Guid userId, int seriesId, TrackedSeriesState state);
 
-    Task<Result> StopWatching(Guid userId, int seriesId);
+    Task<Result> StopWatchingAsync(Guid userId, int seriesId);
 
-    Task<Result> ResumeWatching(Guid userId, int seriesId);
+    Task<Result> ResumeWatchingAsync(Guid userId, int seriesId);
 }

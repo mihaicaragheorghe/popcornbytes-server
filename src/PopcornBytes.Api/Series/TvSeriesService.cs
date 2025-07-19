@@ -124,7 +124,7 @@ public class TvSeriesService : ITvSeriesService
         _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
     };
 
-    public async Task<Result> StopWatching(Guid userId, int seriesId)
+    public async Task<Result> StopWatchingAsync(Guid userId, int seriesId)
     {
         _logger.LogDebug("Stopping watching series {s} for user {u}", seriesId, userId);
 
@@ -135,7 +135,7 @@ public class TvSeriesService : ITvSeriesService
             : Result.Success();
     }
 
-    public async Task<Result> ResumeWatching(Guid userId, int seriesId)
+    public async Task<Result> ResumeWatchingAsync(Guid userId, int seriesId)
     {
         _logger.LogDebug("Stopping watching series {s} for user {u}", seriesId, userId);
 

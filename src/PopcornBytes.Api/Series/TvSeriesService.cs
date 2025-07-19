@@ -58,20 +58,33 @@ public class TvSeriesService : ITvSeriesService
         return series;
     }
 
-    public Task TrackAsync(Guid userId, int seriesId, TrackedSeriesState state)
+    public async Task TrackAsync(Guid userId, int seriesId, TrackedSeriesState state)
     {
         _logger.LogDebug("Adding series {seriesId} to {state} for user {userId}", seriesId, state, userId);
 
         long addedAtUnix = DateTime.UtcNow.ToUnixTime();
 
-        return state switch
+        int rowsAffected = state switch
         {
-            TrackedSeriesState.Watchlist => _seriesRepository.AddToWatchlistAsync(userId, seriesId, addedAtUnix),
-            TrackedSeriesState.Watching => _seriesRepository.AddToWatchingAsync(userId, seriesId, addedAtUnix),
-            TrackedSeriesState.Completed => _seriesRepository.AddToCompletedAsync(userId, seriesId, addedAtUnix),
-            TrackedSeriesState.Stopped => throw new ArgumentOutOfRangeException(nameof(state)),
+            TrackedSeriesState.Watchlist => await _seriesRepository.AddToWatchlistAsync(userId, seriesId, addedAtUnix),
+            TrackedSeriesState.Watching => await _seriesRepository.AddToWatchingAsync(userId, seriesId, addedAtUnix),
+            TrackedSeriesState.Completed => await _seriesRepository.AddToCompletedAsync(userId, seriesId, addedAtUnix),
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
         };
+
+        if (rowsAffected == 0) return;
+
+        // TODO: make this operation atomic with fewer roads to the database
+        switch (state)
+        {
+            case TrackedSeriesState.Watching:
+                await _seriesRepository.RemoveFromWatchlistAsync(userId, seriesId);
+                break;
+            case TrackedSeriesState.Completed:
+                await _seriesRepository.RemoveFromWatchingAsync(userId, seriesId);
+                await _seriesRepository.RemoveFromWatchlistAsync(userId, seriesId);
+                break;
+        }
     }
 
     public Task RemovedTrackedAsync(Guid userId, int seriesId, TrackedSeriesState state)

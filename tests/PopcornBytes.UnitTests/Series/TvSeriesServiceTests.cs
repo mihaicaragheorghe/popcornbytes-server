@@ -34,7 +34,7 @@ public class TvSeriesServiceTests
     }
 
     [Fact]
-    public async Task GetTvSeriesAsync_ShouldReturnFromCache_WhenCached()
+    public async Task GetByIdAsync_ShouldReturnFromCache_WhenCached()
     {
         // Arrange
         var expected = TvSeriesTestUtils.CreateTvSeries();
@@ -43,14 +43,14 @@ public class TvSeriesServiceTests
             .ReturnsAsync(expected);
 
         // Act
-        var actual = await _sut.GetTvSeriesAsync(expected.Id);
+        var actual = await _sut.GetByIdAsync(expected.Id);
 
         // Assert
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task GetTvSeriesAsync_ShouldGetFromTmdb_WhenNotCached()
+    public async Task GetByIdAsync_ShouldGetFromTmdb_WhenNotCached()
     {
         // Arrange
         var expected = TmdbTestUtils.CreateTmdbTvSeries();
@@ -60,14 +60,14 @@ public class TvSeriesServiceTests
             .ReturnsAsync(expected);
 
         // Act
-        var actual = await _sut.GetTvSeriesAsync(expected.Id);
+        var actual = await _sut.GetByIdAsync(expected.Id);
 
         // Assert
         Assert.Equivalent(actual, TvSeries.FromTmdbSeries(expected));
     }
 
     [Fact]
-    public async Task GetTvSeriesAsync_ShouldCacheSeries_WhenRetrievedFromTmdb()
+    public async Task GetByIdAsync_ShouldCacheSeries_WhenRetrievedFromTmdb()
     {
         // Arrange
         var tmdbSeries = TmdbTestUtils.CreateTmdbTvSeries();
@@ -77,7 +77,7 @@ public class TvSeriesServiceTests
             .ReturnsAsync(tmdbSeries);
 
         // Act
-        var series = await _sut.GetTvSeriesAsync(tmdbSeries.Id);
+        var series = await _sut.GetByIdAsync(tmdbSeries.Id);
 
         // Assert
         Assert.NotNull(series);
@@ -85,7 +85,7 @@ public class TvSeriesServiceTests
     }
 
     [Fact]
-    public async Task GetTvSeriesAsync_ShouldReturnNull_WhenTmdbClientReturnsNull()
+    public async Task GetByIdAsync_ShouldReturnNull_WhenTmdbClientReturnsNull()
     {
         // Arrange
         SetupCacheMiss();
@@ -94,14 +94,14 @@ public class TvSeriesServiceTests
             .ReturnsAsync((TmdbTvSeries?)null);
 
         // Act
-        var series = await _sut.GetTvSeriesAsync(0);
+        var series = await _sut.GetByIdAsync(0);
 
         // Assert
         Assert.Null(series);
     }
 
     [Fact]
-    public async Task GetTvSeriesAsync_ShouldNotCacheSeries_WhenTmdbClientReturnsNull()
+    public async Task GetByIdAsync_ShouldNotCacheSeries_WhenTmdbClientReturnsNull()
     {
         // Arrange
         SetupCacheMiss();
@@ -110,14 +110,14 @@ public class TvSeriesServiceTests
             .ReturnsAsync((TmdbTvSeries?)null);
 
         // Act
-        _ = await _sut.GetTvSeriesAsync(0);
+        _ = await _sut.GetByIdAsync(0);
 
         // Assert
         _cacheMock.Verify(cache => cache.Set(It.IsAny<TvSeries>()), Times.Never());
     }
 
     [Fact]
-    public async Task SearchTvSeriesAsync_ShouldReturnFromCache_WhenCached()
+    public async Task QueryAsync_ShouldReturnFromCache_WhenCached()
     {
         // Arrange
         const string q = "twin peaks";
@@ -128,14 +128,14 @@ public class TvSeriesServiceTests
             .Returns(true);
 
         // Act
-        var actual = await _sut.SearchTvSeriesAsync(q);
+        var actual = await _sut.QueryAsync(q);
 
         // Assert
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task SearchTvSeriesAsync_ShouldQueryTmdb_WhenNotCached()
+    public async Task QueryAsync_ShouldQueryTmdb_WhenNotCached()
     {
         // Arrange
         const string q = "twin peaks";
@@ -147,14 +147,14 @@ public class TvSeriesServiceTests
             .ReturnsAsync(expected);
 
         // Act
-        var actual = await _sut.SearchTvSeriesAsync(q, p);
+        var actual = await _sut.QueryAsync(q);
 
         // Assert
         Assert.Equivalent(actual, expected);
     }
 
     [Fact]
-    public async Task SearchTvSeriesAsync_ShouldCacheResponse_WhenRetrievedFromTmdb()
+    public async Task QueryAsync_ShouldCacheResponse_WhenRetrievedFromTmdb()
     {
         // Arrange
         const string q = "twin peaks";
@@ -166,43 +166,131 @@ public class TvSeriesServiceTests
             .ReturnsAsync(response);
 
         // Act
-        var actual = await _sut.SearchTvSeriesAsync(q, p);
+        await _sut.QueryAsync(q);
 
         // Assert
         _searchCacheMock.Verify(x => x.Set($"{q}:{p}", response), Times.Once);
     }
 
     [Fact]
-    public async Task AddToWatchlist_ShouldCallRepository_WhenCalled()
+    public async Task TrackAsync_ShouldCallRepositoryAddToWatchlist_WhenStateIsWatchlist()
     {
         // Arrange
+        const int seriesId = 123;
         var userId = Guid.NewGuid();
-        var seriesId = 123;
         var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         // Act
-        await _sut.AddToWatchlist(userId, seriesId);
+        await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Watchlist);
 
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.AddToWatchlistAsync(userId, seriesId, addedAtUnix), Times.Once);
     }
 
     [Fact]
-    public async Task RemoveFromWatchlist_ShouldCallRepository_WhenCalled()
+    public async Task TrackAsync_ShouldCallRepositoryAddToWatching_WhenStateIsWatching()
     {
         // Arrange
+        const int seriesId = 123;
         var userId = Guid.NewGuid();
-        var seriesId = 123;
+        var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         // Act
-        await _sut.RemoveFromWatchlist(userId, seriesId);
+        await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Watching);
+
+        // Assert
+        _seriesRepositoryMock.Verify(repo => repo.AddToWatchingAsync(userId, seriesId, addedAtUnix), Times.Once);
+    }
+
+    [Fact]
+    public async Task TrackAsync_ShouldCallRepositoryAddToCompleted_WhenStateIsCompleted()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+        var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // Act
+        await _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Completed);
+
+        // Assert
+        _seriesRepositoryMock.Verify(repo => repo.AddToCompletedAsync(userId, seriesId, addedAtUnix), Times.Once);
+    }
+
+    [Fact]
+    public async Task TrackAsync_ShouldThrowArgumentOutOfRangeException_WhenStateIsInvalid()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+
+        // Act
+        var exception =
+            await Record.ExceptionAsync(() => _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Stopped));
+
+        // Assert
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+    }
+
+    [Fact]
+    public async Task RemoveTrackedAsync_ShouldCallRepositoryRemovedFromWatchlist_WhenStateIsWatchlist()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+
+        // Act
+        await _sut.RemovedTrackedAsync(userId, seriesId, TrackedSeriesState.Watchlist);
 
         // Assert
         _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchlistAsync(userId, seriesId), Times.Once);
     }
 
     [Fact]
-    public async Task GetWatchlistAsync_ShouldRetrieveCachedSeries_WhenCached()
+    public async Task RemoveTrackedAsync_ShouldCallRepositoryRemovedFromWatching_WhenStateIsWatching()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+
+        // Act
+        await _sut.RemovedTrackedAsync(userId, seriesId, TrackedSeriesState.Watching);
+
+        // Assert
+        _seriesRepositoryMock.Verify(repo => repo.RemoveFromWatchingAsync(userId, seriesId), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveTrackedAsync_ShouldCallRepositoryRemovedFromCompleted_WhenStateIsCompleted()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+
+        // Act
+        await _sut.RemovedTrackedAsync(userId, seriesId, TrackedSeriesState.Completed);
+
+        // Assert
+        _seriesRepositoryMock.Verify(repo => repo.RemoveFromCompletedAsync(userId, seriesId), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveTrackedAsync_ShouldThrowArgumentOutOfRangeException_WhenStateIsInvalid()
+    {
+        // Arrange
+        const int seriesId = 123;
+        var userId = Guid.NewGuid();
+
+        // Act
+        var exception =
+            await Record.ExceptionAsync(() => _sut.TrackAsync(userId, seriesId, TrackedSeriesState.Stopped));
+
+        // Assert
+        Assert.IsType<ArgumentOutOfRangeException>(exception);
+    }
+
+    [Fact]
+    public async Task GetTrackedAsync_ShouldRetrieveIdsFromWatchlist_WhenStateIsWatchlist()
     {
         // Arrange
         var userId = Guid.NewGuid();
@@ -217,25 +305,104 @@ public class TvSeriesServiceTests
             .ReturnsAsync(expected);
 
         // Act
-        var actual = await _sut.GetWatchlistAsync(userId, CancellationToken.None);
+        var actual = await _sut.GetTrackedAsync(userId, TrackedSeriesState.Watchlist, CancellationToken.None);
 
         // Assert
         Assert.NotEmpty(actual);
         Assert.Equal(expected, actual);
+        _seriesRepositoryMock.Verify(repo => repo.GetWatchlistAsync(userId), Times.Once);
     }
 
     [Fact]
-    public async Task GetWatchlistAsync_ShouldFetchFromTmdb_WhenNotCached()
+    public async Task GetTrackedAsync_ShouldRetrieveIdsFromWatching_WhenStateIsWatching()
     {
         // Arrange
         var userId = Guid.NewGuid();
-        var expectedIds = new List<int> { 1, 2, 3, 4, 5 };
+        var expectedIds = new List<int> { 1, 2, 3 };
+        var expected = TvSeriesTestUtils.CreateCollection(count: 3, startId: expectedIds[0]);
+
+        _seriesRepositoryMock
+            .Setup(repo => repo.GetWatchingAsync(userId))
+            .ReturnsAsync(expectedIds);
+        _cacheMock
+            .Setup(cache => cache.Get(expectedIds))
+            .ReturnsAsync(expected);
+
+        // Act
+        var actual = await _sut.GetTrackedAsync(userId, TrackedSeriesState.Watching, CancellationToken.None);
+
+        // Assert
+        Assert.NotEmpty(actual);
+        Assert.Equal(expected, actual);
+        _seriesRepositoryMock.Verify(repo => repo.GetWatchingAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetTrackedAsync_ShouldRetrieveIdsFromCompleted_WhenStateIsCompleted()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedIds = new List<int> { 1, 2, 3 };
+        var expected = TvSeriesTestUtils.CreateCollection(count: 3, startId: expectedIds[0]);
+
+        _seriesRepositoryMock
+            .Setup(repo => repo.GetCompletedAsync(userId))
+            .ReturnsAsync(expectedIds);
+        _cacheMock
+            .Setup(cache => cache.Get(expectedIds))
+            .ReturnsAsync(expected);
+
+        // Act
+        var actual = await _sut.GetTrackedAsync(userId, TrackedSeriesState.Completed, CancellationToken.None);
+
+        // Assert
+        Assert.NotEmpty(actual);
+        Assert.Equal(expected, actual);
+        _seriesRepositoryMock.Verify(repo => repo.GetCompletedAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetTrackedAsync_ShouldRetrieveIdsFromStopped_WhenStateIsStopped()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedIds = new List<int> { 1, 2, 3 };
+        var expected = TvSeriesTestUtils.CreateCollection(count: 3, startId: expectedIds[0]);
+
+        _seriesRepositoryMock
+            .Setup(repo => repo.GetStoppedAsync(userId))
+            .ReturnsAsync(expectedIds);
+        _cacheMock
+            .Setup(cache => cache.Get(expectedIds))
+            .ReturnsAsync(expected);
+
+        // Act
+        var actual = await _sut.GetTrackedAsync(userId, TrackedSeriesState.Stopped, CancellationToken.None);
+
+        // Assert
+        Assert.NotEmpty(actual);
+        Assert.Equal(expected, actual);
+        _seriesRepositoryMock.Verify(repo => repo.GetStoppedAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetTrackedAsync_ShouldFetchFromTmdb_WhenNotCached()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var expectedIds = new List<int>
+        {
+            1,
+            2,
+            3,
+            4,
+            5
+        };
         var cached = TvSeriesTestUtils.CreateCollection(count: 3, startId: expectedIds[0]);
         var fetched = TmdbTestUtils.CreateTmdbTvSeriesCollection(count: 2, startId: expectedIds[3]);
         var expected = new List<TvSeries>(cached)
         {
-            TvSeries.FromTmdbSeries(fetched[0]),
-            TvSeries.FromTmdbSeries(fetched[1])
+            TvSeries.FromTmdbSeries(fetched[0]), TvSeries.FromTmdbSeries(fetched[1])
         };
 
         _seriesRepositoryMock
@@ -252,7 +419,7 @@ public class TvSeriesServiceTests
             .ReturnsAsync(fetched[1]);
 
         // Act
-        var actual = await _sut.GetWatchlistAsync(userId, CancellationToken.None);
+        var actual = await _sut.GetTrackedAsync(userId, TrackedSeriesState.Watchlist, CancellationToken.None);
 
         // Assert
         Assert.NotEmpty(actual);

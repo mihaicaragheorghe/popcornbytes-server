@@ -23,4 +23,6 @@ public interface ITvSeriesRepository
     Task<int> RemoveFromWatchingAsync(Guid userId, int seriesId);
 
     Task<IEnumerable<int>> GetWatchingAsync(Guid userId);
+
+    Task<IEnumerable<int>> GetStoppedAsync(Guid userId);
 }

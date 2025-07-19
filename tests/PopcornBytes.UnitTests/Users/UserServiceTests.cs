@@ -146,7 +146,7 @@ public class UserServiceTests
             .Returns(hashedPassword);
 
         // Act
-        var result = await _sut.CreateAsync(user.Username, user.Email, user.PasswordHash);
+        _ = await _sut.CreateAsync(user.Username, user.Email, user.PasswordHash);
 
         // Assert
         _userRepositoryMock.Verify(x => x.CreateAsync(It.Is<User>(u => u.PasswordHash == hashedPassword)), Times.Once);

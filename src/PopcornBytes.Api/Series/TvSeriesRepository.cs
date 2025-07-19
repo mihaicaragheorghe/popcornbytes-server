@@ -72,7 +72,7 @@ public class TvSeriesRepository(IDbConnectionFactory connectionFactory) : ITvSer
 
         return await connection.ExecuteAsync(
             """
-            INSERT OR IGNORE INTO series_watching (user_id, series_id, added_at_unix)
+            INSERT OR IGNORE INTO series_watching (user_id, series_id, started_at_unix)
             VALUES (@userId, @seriesId, @addedAtUnix);
             """,
             new { userId, seriesId, addedAtUnix });
@@ -118,7 +118,16 @@ public class TvSeriesRepository(IDbConnectionFactory connectionFactory) : ITvSer
         using var connection = connectionFactory.CreateSqlConnection();
 
         return await connection.QueryAsync<int>(
-            "SELECT series_id FROM series_watching WHERE user_id = @userId ORDER BY added_at_unix DESC;",
+            "SELECT series_id FROM series_watching WHERE user_id = @userId ORDER BY started_at_unix DESC;",
+            new { userId });
+    }
+
+    public async Task<IEnumerable<int>> GetStoppedAsync(Guid userId)
+    {
+        using var connection = connectionFactory.CreateSqlConnection();
+
+        return await connection.QueryAsync<int>(
+            "SELECT series_id FROM series_watching WHERE user_id = @userId AND is_stopped = 1 ORDER BY updated_at_unix DESC;",
             new { userId });
     }
 }

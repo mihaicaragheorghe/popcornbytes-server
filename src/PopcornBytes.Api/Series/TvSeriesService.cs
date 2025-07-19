@@ -27,7 +27,7 @@ public class TvSeriesService : ITvSeriesService
         _seriesRepository = seriesRepository;
     }
 
-    public async Task<SearchTvSeriesResponse> SearchTvSeriesAsync(string query, int page = 1,
+    public async Task<SearchTvSeriesResponse> QueryAsync(string query, int page = 1,
         CancellationToken cancellationToken = default)
     {
         if (_searchCache.TryGetValue(SearchCacheKey(query, page), out SearchTvSeriesResponse cached))
@@ -41,7 +41,7 @@ public class TvSeriesService : ITvSeriesService
         return tmdbResponse;
     }
 
-    public async Task<TvSeries?> GetTvSeriesAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<TvSeries?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         var cachedSeries = await _cache.Get(id);
         if (cachedSeries != null)
@@ -58,100 +58,88 @@ public class TvSeriesService : ITvSeriesService
         return series;
     }
 
-    public Task AddToWatchlist(Guid userId, int seriesId)
+    public Task TrackAsync(Guid userId, int seriesId, TrackedSeriesState state)
     {
-        _logger.LogDebug("Adding series {s} to watchlist for user {u}", seriesId, userId);
+        _logger.LogDebug("Adding series {seriesId} to {state} for user {userId}", seriesId, state, userId);
 
         long addedAtUnix = DateTime.UtcNow.ToUnixTime();
 
-        return _seriesRepository.AddToWatchlistAsync(userId, seriesId, addedAtUnix);
-    }
-
-    public Task RemoveFromWatchlist(Guid userId, int seriesId)
-    {
-        return _seriesRepository.RemoveFromWatchlistAsync(userId, seriesId);
-    }
-
-    public async Task<List<TvSeries>> GetWatchlistAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        var ids = await _seriesRepository.GetWatchlistAsync(userId);
-        if (!ids.Any())
+        return state switch
         {
-            _logger.LogDebug("No watchlist entries found for user {userId}", userId);
-            return [];
+            TrackedSeriesState.Watchlist => _seriesRepository.AddToWatchlistAsync(userId, seriesId, addedAtUnix),
+            TrackedSeriesState.Watching => _seriesRepository.AddToWatchingAsync(userId, seriesId, addedAtUnix),
+            TrackedSeriesState.Completed => _seriesRepository.AddToCompletedAsync(userId, seriesId, addedAtUnix),
+            TrackedSeriesState.Stopped => throw new ArgumentOutOfRangeException(nameof(state)),
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+    }
+
+    public Task RemovedTrackedAsync(Guid userId, int seriesId, TrackedSeriesState state)
+    {
+        _logger.LogDebug("Deleting series {seriesId} from {state} for user {userId}", seriesId, state, userId);
+
+        return state switch
+        {
+            TrackedSeriesState.Watchlist => _seriesRepository.RemoveFromWatchlistAsync(userId, seriesId),
+            TrackedSeriesState.Watching => _seriesRepository.RemoveFromWatchingAsync(userId, seriesId),
+            TrackedSeriesState.Completed => _seriesRepository.RemoveFromCompletedAsync(userId, seriesId),
+            TrackedSeriesState.Stopped => throw new ArgumentOutOfRangeException(nameof(state)),
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+    }
+
+    public async Task<List<TvSeries>> GetTrackedAsync(Guid userId, TrackedSeriesState state,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = (await GetTrackedSeriesIdsAsync(userId, state)).ToList();
+
+        if (ids.Count > 0)
+        {
+            return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
         }
 
-        return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
+        _logger.LogDebug("No watchlist entries found for user {userId}", userId);
+        return [];
     }
 
-    public Task AddToCompleted(Guid userId, int seriesId)
+    private Task<IEnumerable<int>> GetTrackedSeriesIdsAsync(Guid userId, TrackedSeriesState state) => state switch
     {
-        _logger.LogDebug("Adding series {s} to completed for user {u}", seriesId, userId);
+        TrackedSeriesState.Watchlist => _seriesRepository.GetWatchlistAsync(userId),
+        TrackedSeriesState.Watching => _seriesRepository.GetWatchingAsync(userId),
+        TrackedSeriesState.Completed => _seriesRepository.GetCompletedAsync(userId),
+        TrackedSeriesState.Stopped => _seriesRepository.GetStoppedAsync(userId),
+        _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+    };
 
-        long completedAtUnix = DateTime.UtcNow.ToUnixTime();
-
-        return _seriesRepository.AddToCompletedAsync(userId, seriesId, completedAtUnix);
-    }
-
-    public Task RemoveFromCompleted(Guid userId, int seriesId)
-    {
-        return _seriesRepository.RemoveFromCompletedAsync(userId, seriesId);
-    }
-
-    public async Task<List<TvSeries>> GetCompletedAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        var ids = await _seriesRepository.GetCompletedAsync(userId);
-        if (!ids.Any())
-        {
-            _logger.LogDebug("No completed series found for user {userId}", userId);
-            return [];
-        }
-
-        return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
-    }
-
-    public Task AddToWatching(Guid userId, int seriesId)
-    {
-        _logger.LogDebug("Adding series {s} to watching for user {u}", seriesId, userId);
-        return _seriesRepository.AddToWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
-    }
-
-    public Task StopWatching(Guid userId, int seriesId)
+    public async Task<Result> StopWatching(Guid userId, int seriesId)
     {
         _logger.LogDebug("Stopping watching series {s} for user {u}", seriesId, userId);
-        return _seriesRepository.StopWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+
+        var rowsAffected = await _seriesRepository.StopWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+
+        return rowsAffected == 0
+            ? Error.Failure(code: "series.not_started", message: "The series was not started")
+            : Result.Success();
     }
 
-    public Task ResumeWatching(Guid userId, int seriesId)
+    public async Task<Result> ResumeWatching(Guid userId, int seriesId)
     {
-        _logger.LogDebug("Resuming watching series {s} for user {u}", seriesId, userId);
-        return _seriesRepository.ResumeWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+        _logger.LogDebug("Stopping watching series {s} for user {u}", seriesId, userId);
+
+        var rowsAffected = await _seriesRepository.ResumeWatchingAsync(userId, seriesId, DateTime.UtcNow.ToUnixTime());
+
+        return rowsAffected == 0
+            ? Error.Failure(code: "series.not_stopped", message: "The series was not stopped")
+            : Result.Success();
     }
 
-    public Task RemoveFromWatching(Guid userId, int seriesId)
-    {
-        _logger.LogDebug("Removing series {s} from watching for user {u}", seriesId, userId);
-        return _seriesRepository.RemoveFromWatchingAsync(userId, seriesId);
-    }
-
-    public async Task<List<TvSeries>> GetWatchingAsync(Guid userId, CancellationToken cancellationToken)
-    {
-        var ids = await _seriesRepository.GetWatchingAsync(userId);
-        if (!ids.Any())
-        {
-            _logger.LogDebug("No watching series found for user {userId}", userId);
-            return [];
-        }
-
-        return await GetFromCacheOrTmdbAsync(ids, cancellationToken);
-    }
-
-    private async Task<List<TvSeries>> GetFromCacheOrTmdbAsync(IEnumerable<int> ids, CancellationToken cancellationToken)
+    private async Task<List<TvSeries>> GetFromCacheOrTmdbAsync(List<int> ids,
+        CancellationToken cancellationToken)
     {
         var cachedSeries = await _cache.Get(ids);
-        var missingIds = ids.Except(cachedSeries.Select(s => s.Id));
+        var missingIds = ids.Except(cachedSeries.Select(s => s.Id)).ToList();
 
-        if (!missingIds.Any())
+        if (missingIds.Count == 0)
         {
             _logger.LogDebug("All series found in cache for IDs: {ids}", string.Join(", ", ids));
             return cachedSeries;

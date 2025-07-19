@@ -57,4 +57,9 @@ public sealed class Result
     public static Result Failure(Error error) => new(error);
 
     public static implicit operator Result(Error error) => Failure(error);
+    
+    public TNext Match<TNext>(
+        Func<TNext> onSuccess,
+        Func<Error, TNext> onError) =>
+        IsError ? onError((Error)Error!) : onSuccess();
 }

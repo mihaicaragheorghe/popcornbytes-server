@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 
 using Moq;
 
-using PopcornBytes.Api.Kernel;
 using PopcornBytes.Api.Seasons;
 using PopcornBytes.Api.Series;
 using PopcornBytes.Api.Tmdb;

@@ -11,11 +11,12 @@ Authorization: Bearer {{token}}
 GET {{host}}/series/{{id}}
 Authorization: Bearer {{token}}
 
-### Add series to watchlist
+### Track series
 
-@userId = 8429bc76-e0a4-40ff-9903-ac34445ecb31
+@userId = 336847c7-a140-4759-8f6f-2576ad264e12
+@state = watchlist
 
-POST {{host}}/series/watchlist
+POST {{host}}/series/track/{{state}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
@@ -24,13 +25,13 @@ Authorization: Bearer {{token}}
   "seriesId": "{{id}}"
 }
 
-### Remove from watchlist
+### Untrack series
 
-DELETE {{host}}/users/{{userId}}/series/{{id}}/watchlist
+DELETE {{host}}/users/{{userId}}/series/{{id}}/tracked/{{state}}
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
-### Get watchlist
+### Get tracked
 
-GET {{host}}/users/{{userId}}/series/watchlist
+GET {{host}}/users/{{userId}}/series/tracked/{{state}}
 Authorization: Bearer {{token}}

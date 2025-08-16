@@ -71,6 +71,7 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<IUserRepository, UserRepository>();
         services.AddSingleton<ITvSeriesRepository, TvSeriesRepository>();
+        services.AddSingleton<IEpisodeRepository, EpisodeRepository>();
 
         DefaultTypeMap.MatchNamesWithUnderscores = true;
         SqlMapper.AddTypeHandler(new SqlGuidTypeHandler());

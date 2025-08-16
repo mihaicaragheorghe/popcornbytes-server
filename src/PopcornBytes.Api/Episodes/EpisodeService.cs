@@ -1,3 +1,4 @@
+using PopcornBytes.Api.Extensions;
 using PopcornBytes.Api.Tmdb;
 
 namespace PopcornBytes.Api.Episodes;
@@ -7,15 +8,18 @@ public class EpisodeService : IEpisodeService
     private readonly ILogger<EpisodeService> _logger;
     private readonly ITmdbClient _tmdbClient;
     private readonly IEpisodesCache _cache;
+    private readonly IEpisodeRepository _repository;
 
     public EpisodeService(
         ILogger<EpisodeService> logger,
         ITmdbClient tmdbClient,
-        IEpisodesCache cache)
+        IEpisodesCache cache,
+        IEpisodeRepository repository)
     {
         _logger = logger;
         _tmdbClient = tmdbClient;
         _cache = cache;
+        _repository = repository;
     }
 
     public async Task<List<Episode>?> GetEpisodesAsync(int seriesId, int seasonNumber,
@@ -55,5 +59,30 @@ public class EpisodeService : IEpisodeService
         if (tmdbResponse is null) return null;
 
         return Episode.FromTmdbEpisode(tmdbResponse);
+    }
+
+    public Task AddToCompletedAsync(Guid userId, int seriesId, int season, int episode)
+    {
+        var unixNow = DateTime.UtcNow.ToUnixTime();
+        return _repository.AddToCompletedAsync(
+            userId: userId,
+            seriesId: seriesId,
+            season: season,
+            episode: episode,
+            watchedAtUnix: unixNow);
+    }
+
+    public Task RemoveFromCompletedAsync(Guid userId, int seriesId, int season, int episode)
+    {
+        return _repository.RemoveFromCompletedAsync(
+            userId: userId,
+            seriesId: seriesId,
+            season: season,
+            episode: episode);
+    }
+
+    public Task<IEnumerable<CompletedEpisodeRecord>> GetCompletedAsync(Guid userId)
+    {
+        return _repository.GetCompletedAsync(userId);
     }
 }

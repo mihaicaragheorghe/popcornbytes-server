@@ -30,7 +30,7 @@ internal static class TvSeriesEndpoints
                 {
                     if (IdentityUtils.GetUserIdClaim(claims) != request.UserId)
                     {
-                        return Results.Unauthorized();
+                        return Results.Forbid();
                     }
 
                     if (!Enum.TryParse<TrackedSeriesState>(state, ignoreCase: true, out var stateEnum) ||
@@ -50,7 +50,7 @@ internal static class TvSeriesEndpoints
                 {
                     if (IdentityUtils.GetUserIdClaim(claims) != userId)
                     {
-                        return Results.Unauthorized();
+                        return Results.Forbid();
                     }
 
                     if (!Enum.TryParse<TrackedSeriesState>(state, ignoreCase: true, out var stateEnum))
@@ -72,7 +72,7 @@ internal static class TvSeriesEndpoints
                 {
                     if (IdentityUtils.GetUserIdClaim(claims) != userId)
                     {
-                        return Results.Unauthorized();
+                        return Results.Forbid();
                     }
 
                     if (!Enum.TryParse<TrackedSeriesState>(state, ignoreCase: true, out var stateEnum) ||
@@ -92,7 +92,7 @@ internal static class TvSeriesEndpoints
                 {
                     if (IdentityUtils.GetUserIdClaim(claims) != userId)
                     {
-                        return Results.Unauthorized();
+                        return Results.Forbid();
                     }
 
                     var result = action switch

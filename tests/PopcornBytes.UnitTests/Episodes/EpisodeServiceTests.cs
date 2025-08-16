@@ -13,6 +13,8 @@ public class EpisodeServiceTests
 {
     private readonly Mock<ITmdbClient> _tmdbClientMock;
     private readonly Mock<IEpisodesCache> _cacheMock;
+    private readonly Mock<IEpisodeRepository> _repositoryMock;
+
     private readonly EpisodeService _sut;
 
     public EpisodeServiceTests()
@@ -20,7 +22,12 @@ public class EpisodeServiceTests
         Mock<ILogger<EpisodeService>> loggerMock = new();
         _tmdbClientMock = new Mock<ITmdbClient>();
         _cacheMock = new Mock<IEpisodesCache>();
-        _sut = new EpisodeService(loggerMock.Object, _tmdbClientMock.Object, _cacheMock.Object);
+        _repositoryMock = new Mock<IEpisodeRepository>();
+        _sut = new EpisodeService(
+            logger: loggerMock.Object,
+            tmdbClient: _tmdbClientMock.Object,
+            cache: _cacheMock.Object,
+            repository: _repositoryMock.Object);
     }
 
     [Fact]
@@ -172,6 +179,61 @@ public class EpisodeServiceTests
         // Assert
         Assert.NotNull(actual);
         Assert.Equivalent(Episode.FromTmdbEpisode(expected), actual);
+    }
+
+    [Fact]
+    public async Task AddToCompletedAsync_ShouldPersistChanges_WhenCalled()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var seriesId = 1;
+        var season = 2;
+        var ep = 3;
+        var addedAtUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // Act
+        await _sut.AddToCompletedAsync(userId, seriesId, season, ep);
+
+        // Assert
+        _repositoryMock.Verify(r => r.AddToCompletedAsync(userId, seriesId, season, ep, addedAtUnix), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveFromCompletedAsync_ShouldPersistChanges_WhenCalled()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var seriesId = 1;
+        var season = 2;
+        var ep = 3;
+
+        // Act
+        await _sut.RemoveFromCompletedAsync(userId, seriesId, season, ep);
+
+        // Assert
+        _repositoryMock.Verify(r => r.RemoveFromCompletedAsync(userId, seriesId, season, ep), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCompletedAsync_ShouldReturnCollection_WhenExistsInDatabase()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        List<CompletedEpisodeRecord> expected =
+        [
+            new CompletedEpisodeRecord(userId, 1, 2, 3, DateTime.UtcNow.AddHours(-6)),
+            new CompletedEpisodeRecord(userId, 4, 5, 6, DateTime.UtcNow.AddHours(-2)),
+        ];
+
+        _repositoryMock
+            .Setup(r => r.GetCompletedAsync(userId))
+            .ReturnsAsync(expected);
+        
+        // Act
+        var actual = await _sut.GetCompletedAsync(userId);
+
+        // Assert
+        Assert.Equivalent(expected, actual);
     }
 
     private void SetupCacheMiss()
